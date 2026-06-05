@@ -68,3 +68,27 @@ agent-transcripts/
 terminals/
 .aider*
 aider.chat.*.md
+
+# Flutter / Dart / Pub
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+# build/ already covered above
+app.*.symbols
+app.*.map.json
+
+# Android build artifacts
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Swift Package Manager
+.swiftpm/
+
+# Migration scratch
+migrate_working_dir/
