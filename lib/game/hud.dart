@@ -22,9 +22,8 @@ import 'package:flutter/material.dart';
 import 'age_of_war_game.dart';
 import 'unit_def.dart';
 
-/// Tiny Swords gold coin sprite — replaces the Material bolt icon (decision:
-/// "lightning bolt for gold is confusing").
-const _goldAsset = 'assets/images/tiny_swords/resources/gold.png';
+/// Gold coin emoji for currency display.
+const _coinEmoji = '🪙';
 
 /// Small inline coin widget. Used in the HUD stat row and in spawn buttons
 /// so the currency reads identically wherever it appears.
@@ -35,12 +34,16 @@ class _Coin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      _goldAsset,
-      width: size,
-      height: size,
-      filterQuality: FilterQuality.none, // preserve pixel-art edges
-      opacity: dimmed ? const AlwaysStoppedAnimation(0.4) : null,
+    return Opacity(
+      opacity: dimmed ? 0.4 : 1.0,
+      child: Text(
+        _coinEmoji,
+        style: TextStyle(
+          fontSize: size,
+          height: 1.0,
+        ),
+        semanticsLabel: 'gold',
+      ),
     );
   }
 }
