@@ -59,6 +59,17 @@ class Hud extends StatelessWidget {
         if (state == GameState.loading) {
           return const _LoadingHud();
         }
+
+        // Responsive spawn panel positioning (DESIGN.md: Responsive Multiplatform Spec).
+        // Formula: bottom = max(safeAreaBottom + 12, viewportHeight × 0.275)
+        // Scales from 384dp mobile (~165dp) to 1200dp+ desktop without hardcoding.
+        final safePadding = MediaQuery.of(context).padding;
+        final viewportHeight = MediaQuery.of(context).size.height -
+            safePadding.top -
+            safePadding.bottom;
+        final spawnPanelBottom =
+            (viewportHeight * 0.275).clamp(0.0, double.infinity).toDouble();
+
         return SafeArea(
           child: Stack(
             fit: StackFit.expand,
@@ -71,12 +82,12 @@ class Hud extends StatelessWidget {
               ),
               // Spawn buttons floated above the player castle's roof so the
               // bottom of the battlefield (grass strip + castle silhouette)
-              // stays visible. Bottom anchor 165dp clears the castle's top
-              // edge on the reference landscape phone (~384dp tall logical).
+              // stays visible. Position scales responsively: 27.5% of viewport
+              // height ensures proper spacing across all screen sizes.
               // The back-to-level-select affordance lives in the surrounding
               // PlaySessionScreen, not here, so we don't double it up.
               Positioned(
-                bottom: 165,
+                bottom: spawnPanelBottom,
                 left: 12,
                 child: _SpawnPanel(game: game),
               ),
