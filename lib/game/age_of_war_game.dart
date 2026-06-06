@@ -146,16 +146,25 @@ class AgeOfWarGame extends FlameGame {
     super.update(dt);
   }
 
-  /// Tile the Tiny Swords terrain across the battlefield. One row of
-  /// grass-on-stone tiles sits flush with the ground line; an earth-colour
-  /// rectangle fills any space left between the tile row and the world's
-  /// bottom edge.
+  /// Tile the Tiny Swords terrain across the battlefield. The visible grass
+  /// surface aligns with [groundY] so castles + units (anchored bottomCenter
+  /// at groundY) appear planted on the grass. The tile row is shifted up by
+  /// [grassSurfaceOffset] pixels so the grass texture (top portion of each
+  /// 64px tile) sits where feet land. An earth-colour rectangle fills below.
   Future<void> _buildTerrain({
     required double worldWidth,
     required double worldHeight,
     required double groundY,
   }) async {
     const tilePx = 64.0;
+    // Pixels above groundY where the tile's top edge is drawn. The Tiny
+    // Swords grass-on-stone tile has the grass texture in the upper portion
+    // of each 64px tile; offsetting up by 24px puts that grass surface at
+    // groundY, so unit/castle feet visually plant in the grass rather than
+    // floating above it.
+    const grassSurfaceOffset = 24.0;
+    final tileY = groundY - grassSurfaceOffset;
+
     final tilemap = await images.load('tiny_swords/terrain/tilemap.png');
     final sheet = SpriteSheet(image: tilemap, srcSize: Vector2.all(tilePx));
     // Right-half side-view tiles: grass cap on stone block, picked from
@@ -167,16 +176,19 @@ class AgeOfWarGame extends FlameGame {
       world.add(SpriteComponent(
         sprite: groundTile,
         size: Vector2.all(tilePx),
-        position: Vector2(i * tilePx, groundY),
+        position: Vector2(i * tilePx, tileY),
+        // Tiles render behind units/castles (which default to priority 0).
+        priority: -10,
       ));
     }
-    // Earth fill for the strip below the tile row.
-    final fillTop = groundY + tilePx;
+    // Earth fill for the strip below the tile row (down to world bottom).
+    final fillTop = tileY + tilePx;
     if (fillTop < worldHeight) {
       world.add(RectangleComponent(
         position: Vector2(0, fillTop),
         size: Vector2(worldWidth, worldHeight - fillTop),
         paint: Paint()..color = const Color(0xFF2A2018),
+        priority: -10,
       ));
     }
   }
