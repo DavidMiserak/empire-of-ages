@@ -29,12 +29,19 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
   double _currentSpawnIntervalSec = 0.0;
   final math.Random _rng = math.Random();
 
-  // Damage flash + HP bar (game-feel polish)
-  late final RectangleComponent _body;
-  late final Color _baseBodyColor;
+  // Damage flash + HP bar (game-feel polish). The body is now a Tiny Swords
+  // castle sprite (Blue for player, Red for enemy); the damage flash drives
+  // a brief white tint on the sprite via a ColorEffect.
+  late final SpriteComponent _castle;
   late final _HpBar _hpBar;
   double _flashRemaining = 0.0;
   static const double _flashDuration = 0.15;
+
+  /// Castle render size. Sprite source is 320×256 (5:4); rendering at
+  /// 160×128 is half-scale and preserves the proportions. The base's own
+  /// PositionComponent size keeps the smaller logical footprint that the
+  /// attack-reach math (_baseReachPx) was tuned against.
+  static final Vector2 _castleSize = Vector2(160, 128);
 
   Base({required this.side, required Vector2 position, required this.maxHp})
       : hp = maxHp,
@@ -46,19 +53,23 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
 
   @override
   Future<void> onLoad() async {
-    // Placeholder rectangle. T2 will replace with real sprite.
-    _baseBodyColor = side == Side.player
-        ? const Color(0xFF2E7D32) // green for player
-        : const Color(0xFFC62828); // red for enemy
-    _body = RectangleComponent(
-      size: size,
-      paint: Paint()..color = _baseBodyColor,
+    final asset = side == Side.player
+        ? 'tiny_swords/buildings/castle_blue.png'
+        : 'tiny_swords/buildings/castle_red.png';
+    final sprite = await game.loadSprite(asset);
+    _castle = SpriteComponent(
+      sprite: sprite,
+      size: _castleSize,
+      // Bottom-centre the castle on the base's bottom-centre so it sits on
+      // the ground line regardless of the logical footprint width.
+      anchor: Anchor.bottomCenter,
+      position: Vector2(size.x / 2, size.y),
     );
-    add(_body);
-    // HP bar floats just above the base. PLAYER / ENEMY text labels removed —
-    // side is already encoded by colour + screen position.
+    add(_castle);
+
+    // HP bar floats above the castle's top edge.
     _hpBar = _HpBar(owner: this)
-      ..position = Vector2(size.x / 2, -8)
+      ..position = Vector2(size.x / 2, size.y - _castleSize.y - 6)
       ..anchor = Anchor.bottomCenter;
     add(_hpBar);
 
@@ -80,11 +91,18 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
         _recomputeSpawnInterval();
       }
     }
-    // Damage flash decay
+    // Damage flash decay — manual tween of the sprite's color filter so we
+    // don't allocate an Effect on every hit.
     if (_flashRemaining > 0) {
       _flashRemaining = (_flashRemaining - dt).clamp(0.0, _flashDuration);
       final t = _flashRemaining / _flashDuration;
-      _body.paint.color = Color.lerp(_baseBodyColor, Colors.white, t)!;
+      _castle.paint = Paint()
+        ..colorFilter = ColorFilter.mode(
+          Colors.white.withValues(alpha: t * 0.8),
+          BlendMode.srcATop,
+        );
+    } else if (_castle.paint.colorFilter != null) {
+      _castle.paint = Paint();
     }
   }
 
@@ -159,7 +177,7 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
   void reset() {
     hp = maxHp;
     _flashRemaining = 0.0;
-    _body.paint.color = _baseBodyColor;
+    _castle.paint = Paint();
     _elapsedMatchSeconds = 0.0;
     _timeSinceLastSpawn = 0.0;
     if (side == Side.enemy) {
