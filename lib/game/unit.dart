@@ -17,11 +17,12 @@
 // max) this is fine; if perf bites later, switch to a spatial bucket or
 // Flame's CollisionDetection.
 //
-// Sprites: Medieval-age units (knight / archer / cavalry) render as Tiny
-// Swords SpriteAnimationComponents (Blue faction for player, Red for enemy,
-// mirrored on enemy side so they face left toward the player). Stone-age
-// units (clubman / slinger / dino_rider) keep the colored-rectangle
-// fallback — Tiny Swords has no prehistoric sprites.
+// Sprites: Medieval-age units (warrior / archer / lancer — names matched to
+// the Tiny Swords sprite folders) render as SpriteAnimationComponents (Blue
+// faction for player, Red for enemy, mirrored on enemy side so they face
+// left toward the player). Stone-age units (clubman / slinger / dino_rider)
+// keep the colored-rectangle fallback — Tiny Swords has no prehistoric
+// sprites.
 
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
@@ -53,9 +54,9 @@ class _SpriteCfg {
 }
 
 const _spriteConfigs = <String, _SpriteCfg>{
-  'knight':  _SpriteCfg(prefix: 'warrior', frameSize: 192, runFrames: 6, attackFrames: 4, renderSize: 96),
+  'warrior': _SpriteCfg(prefix: 'warrior', frameSize: 192, runFrames: 6, attackFrames: 4, renderSize: 96),
   'archer':  _SpriteCfg(prefix: 'archer',  frameSize: 192, runFrames: 4, attackFrames: 8, renderSize: 96),
-  'cavalry': _SpriteCfg(prefix: 'lancer',  frameSize: 320, runFrames: 6, attackFrames: 3, renderSize: 128),
+  'lancer':  _SpriteCfg(prefix: 'lancer',  frameSize: 320, runFrames: 6, attackFrames: 3, renderSize: 128),
 };
 
 class Unit extends PositionComponent with HasGameReference<AgeOfWarGame> {

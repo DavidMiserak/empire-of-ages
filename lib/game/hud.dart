@@ -5,13 +5,14 @@
 // Layout:
 //
 //   ┌──────────────────────────────────────────────────────────────┐
-//   │  Gold: 175    Age 1    HP P: 1000 / E: 1000      [Age up]    │  top bar
+//   │  🪙 175  📈 0/300  [STONE AGE] [▲ Medieval]   🏰 1000  ☠ 1000│  top bar
 //   │                                                              │
-//   │              (the game canvas underneath)                    │
+//   │                       (battlefield)                          │
 //   │                                                              │
-//   │  [Clubman ]  [Slinger ]  [Dino R. ]                          │  bottom strip
-//   │   20 gold    35 gold     75 gold                             │
+//   │  [W][A][L]                                  (clear)          │  spawn panel
+//   │  [castle]                              [enemy castle]        │
 //   └──────────────────────────────────────────────────────────────┘
+// (back-to-level-select arrow lives in PlaySessionScreen, not here.)
 //
 // Spawn buttons disable when gold < unit.cost (per-unit, surgical).
 // Age-up button enables when cumulative gold earned >= next age threshold.
@@ -20,6 +21,29 @@ import 'package:flutter/material.dart';
 
 import 'age_of_war_game.dart';
 import 'unit_def.dart';
+
+/// Tiny Swords gold coin sprite — replaces the Material bolt icon (decision:
+/// "lightning bolt for gold is confusing").
+const _goldAsset = 'assets/images/tiny_swords/resources/gold.png';
+
+/// Small inline coin widget. Used in the HUD stat row and in spawn buttons
+/// so the currency reads identically wherever it appears.
+class _Coin extends StatelessWidget {
+  final double size;
+  final bool dimmed;
+  const _Coin({this.size = 18, this.dimmed = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      _goldAsset,
+      width: size,
+      height: size,
+      filterQuality: FilterQuality.none, // preserve pixel-art edges
+      opacity: dimmed ? const AlwaysStoppedAnimation(0.4) : null,
+    );
+  }
+}
 
 class Hud extends StatelessWidget {
   final AgeOfWarGame game;
@@ -45,11 +69,16 @@ class Hud extends StatelessWidget {
                 right: 0,
                 child: _TopBar(game: game),
               ),
+              // Spawn buttons floated above the player castle's roof so the
+              // bottom of the battlefield (grass strip) stays visible. Tuned
+              // for landscape ~853×384 dp; on taller screens the panel will
+              // sit a touch higher relative to the castle but stays above.
+              // The back-to-level-select affordance lives in the surrounding
+              // PlaySessionScreen, not here, so we don't double it up.
               Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: _BottomBar(game: game),
+                bottom: 100,
+                left: 12,
+                child: _SpawnPanel(game: game),
               ),
               // Game-over UI lives in the separate 'gameOver' overlay
               // (registered in lib/play_session/game_widget.dart), not here.
@@ -95,11 +124,11 @@ class _TopBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Gold
+          // Gold — Tiny Swords coin sprite, matched in colour to the value text.
           ValueListenableBuilder<int>(
             valueListenable: game.gold,
             builder: (context, gold, _) => _Stat(
-              icon: Icons.bolt,
+              leading: const _Coin(size: 20),
               value: '$gold',
               color: const Color(0xFFFFCA28),
             ),
@@ -113,7 +142,13 @@ class _TopBar extends StatelessWidget {
               if (next == null) return const SizedBox.shrink();
               final threshold = next.goldThresholdToAdvance ?? 0;
               return _Stat(
-                icon: Icons.trending_up,
+                leading: Icon(
+                  Icons.trending_up,
+                  size: 18,
+                  color: earned >= threshold
+                      ? const Color(0xFF7E57C2)
+                      : const Color(0xFFB39DDB),
+                ),
                 value: '$earned/$threshold',
                 color: earned >= threshold
                     ? const Color(0xFF7E57C2)
@@ -137,7 +172,7 @@ class _TopBar extends StatelessWidget {
           ValueListenableBuilder<int>(
             valueListenable: game.playerBaseHp,
             builder: (context, hp, _) => _Stat(
-              icon: Icons.castle,
+              leading: const Icon(Icons.castle, size: 18, color: Color(0xFF66BB6A)),
               value: '$hp',
               color: const Color(0xFF66BB6A),
             ),
@@ -147,7 +182,7 @@ class _TopBar extends StatelessWidget {
           ValueListenableBuilder<int>(
             valueListenable: game.enemyBaseHp,
             builder: (context, hp, _) => _Stat(
-              icon: Icons.dangerous,
+              leading: const Icon(Icons.dangerous, size: 18, color: Color(0xFFEF5350)),
               value: '$hp',
               color: const Color(0xFFEF5350),
             ),
@@ -159,17 +194,19 @@ class _TopBar extends StatelessWidget {
 }
 
 class _Stat extends StatelessWidget {
-  final IconData icon;
+  /// Leading icon widget — kept generic so the gold stat can use the
+  /// pixel-art Tiny Swords coin while HP and progress use Material icons.
+  final Widget leading;
   final String value;
   final Color color;
-  const _Stat({required this.icon, required this.value, required this.color});
+  const _Stat({required this.leading, required this.value, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: color),
+        leading,
         const SizedBox(width: 4),
         Text(
           value,
@@ -272,24 +309,20 @@ class _DisabledChip extends StatelessWidget {
   }
 }
 
-// ---------- Bottom bar (spawn buttons) ----------
+// ---------- Spawn panel (floats above the player castle) ----------
 
-class _BottomBar extends StatelessWidget {
+class _SpawnPanel extends StatelessWidget {
   final AgeOfWarGame game;
-  const _BottomBar({required this.game});
+  const _SpawnPanel({required this.game});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: const BoxDecoration(
-        // Opaque dark bar so the world's brown ground stripe (which extends
-        // the full width below the bases) doesn't bleed through and create
-        // the thin "ground peeking above the bar" artefact at the top edge.
-        color: Color(0xFF0F1722),
-        border: Border(
-          top: BorderSide(color: Color(0xFF445566), width: 1),
-        ),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF445566), width: 1),
       ),
       child: ValueListenableBuilder<int>(
         valueListenable: game.currentAge,
@@ -298,9 +331,12 @@ class _BottomBar extends StatelessWidget {
               .where((u) => u.age == age)
               .toList();
           return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              for (final unit in units) _SpawnButton(game: game, def: unit),
+              for (var i = 0; i < units.length; i++) ...[
+                if (i > 0) const SizedBox(width: 6),
+                _SpawnButton(game: game, def: units[i]),
+              ],
             ],
           );
         },
@@ -321,17 +357,15 @@ class _SpawnButton extends StatelessWidget {
       builder: (context, gold, _) {
         final affordable = gold >= def.cost;
         return ElevatedButton(
-          onPressed: affordable
-              ? () {
-                  game.playerBase.spawn(def.id);
-                }
-              : null,
+          onPressed: affordable ? () => game.playerBase.spawn(def.id) : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF455A64),
             disabledBackgroundColor: const Color(0xFF263238),
             foregroundColor: Colors.white,
             disabledForegroundColor: Colors.white38,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(6),
             ),
@@ -343,24 +377,19 @@ class _SpawnButton extends StatelessWidget {
                 def.name,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 15,
+                  fontSize: 13,
                 ),
               ),
               const SizedBox(height: 2),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.bolt,
-                    size: 14,
-                    color: affordable
-                        ? const Color(0xFFFFCA28)
-                        : Colors.white38,
-                  ),
+                  _Coin(size: 12, dimmed: !affordable),
+                  const SizedBox(width: 2),
                   Text(
                     '${def.cost}',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                       fontFeatures: const [FontFeature.tabularFigures()],
                       color: affordable

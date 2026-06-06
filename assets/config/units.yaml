@@ -48,15 +48,16 @@ units:
     sprite: "units/age1/dino_rider.png"
 
   # ---------- Age 2: Medieval ----------
-  - id: knight
+  # Names match the Tiny Swords sprites these units render as.
+  - id: warrior
     age: 2
-    name: "Knight"
+    name: "Warrior"
     hp: 200
     dmg: 25
     speed: 30
     cost: 100
     gold_reward: 120
-    sprite: "units/age2/knight.png"
+    sprite: "tiny_swords/units/blue/warrior/run.png"
 
   - id: archer
     age: 2
@@ -67,14 +68,14 @@ units:
     cost: 150
     gold_reward: 175
     range: 100
-    sprite: "units/age2/archer.png"
+    sprite: "tiny_swords/units/blue/archer/run.png"
 
-  - id: cavalry
+  - id: lancer
     age: 2
-    name: "Cavalry"
+    name: "Lancer"
     hp: 400
     dmg: 50
     speed: 35
     cost: 250
     gold_reward: 300
-    sprite: "units/age2/cavalry.png"
+    sprite: "tiny_swords/units/blue/lancer/run.png"

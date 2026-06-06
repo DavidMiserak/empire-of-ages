@@ -40,6 +40,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/tiny_swords/buildings/
+    - assets/images/tiny_swords/resources/
     - assets/images/tiny_swords/terrain/
     - assets/images/tiny_swords/units/blue/warrior/
     - assets/images/tiny_swords/units/blue/archer/
