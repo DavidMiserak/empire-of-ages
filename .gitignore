@@ -127,8 +127,9 @@ app.*.symbols
 # Node / pre-commit tooling cache
 node_modules/
 
-# Dev session logs
+# Dev session logs and scratch files
 play.log
+TODOS.md
 
 # Toolkit placeholder music (replaced by Joel Steudler tracks)
 assets/music/Mr_Smith-*.mp3
