@@ -50,7 +50,18 @@ class AudioController {
       _musicPlayer = AudioPlayer(playerId: 'musicPlayer'),
       _sfxPlayers = Iterable.generate(
         polyphony,
-        (i) => AudioPlayer(playerId: 'sfxPlayer#$i'),
+        (i) {
+          final p = AudioPlayer(playerId: 'sfxPlayer#$i');
+          // mixWithOthers: SFX must not request Android audio focus, or
+          // every playSfx() call (e.g. the menu Play button) interrupts the
+          // music player and it never resumes. Same fix as for FlameAudio
+          // SFX in lib/game/age_of_war_game.dart.
+          unawaited(p.setAudioContext(
+            AudioContextConfig(focus: AudioContextConfigFocus.mixWithOthers)
+                .build(),
+          ));
+          return p;
+        },
       ).toList(growable: false),
       _playlist = Queue.of(List<Song>.of(songs)..shuffle()) {
     _musicPlayer.onPlayerComplete.listen(_handleSongFinished);

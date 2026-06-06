@@ -16,7 +16,6 @@ import '../game_internals/score.dart';
 import '../level_selection/levels.dart';
 import '../player_progress/player_progress.dart';
 import '../style/confetti.dart';
-import '../style/my_button.dart';
 import '../style/palette.dart';
 import 'game_widget.dart';
 
@@ -83,23 +82,17 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
               // layout where a 1/3-height GameWidget made sense.
               const Positioned.fill(child: GameWidget()),
               Positioned(
-                top: 8,
-                right: 8,
-                child: InkResponse(
-                  onTap: () => GoRouter.of(context).push('/settings'),
-                  child: Image.asset(
-                    'assets/images/settings.png',
-                    semanticLabel: 'Settings',
-                    width: 40,
-                  ),
-                ),
-              ),
-              Positioned(
                 bottom: 8,
                 left: 8,
-                child: MyButton(
-                  onPressed: () => GoRouter.of(context).go('/play'),
-                  child: const Text('Back'),
+                child: SafeArea(
+                  child: IconButton(
+                    onPressed: () => GoRouter.of(context).go('/play'),
+                    icon: const Icon(Icons.arrow_back),
+                    color: Colors.white70,
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.black38,
+                    ),
+                  ),
                 ),
               ),
               // This is the confetti animation that is overlaid on top of the

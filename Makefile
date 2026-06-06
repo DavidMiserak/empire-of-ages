@@ -72,7 +72,7 @@ run-web:
 
 .PHONY: run-android
 run-android:
-	$(FLUTTER) run -d android
+	$(FLUTTER) run -d $(shell $(FLUTTER) devices 2>/dev/null | grep android | awk '{print $$4}')
 
 # --- quality ---
 

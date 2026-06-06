@@ -83,19 +83,24 @@ class AgeOfWarGame extends FlameGame {
     // reassigning, which would orphan our world from the new camera.
     camera.viewfinder.visibleGameSize =
         Vector2(c.worldWidthPx, c.worldHeightPx);
-    // Centre the visible area on the middle of the world so units near the
-    // left/right edges aren't clipped by the auto-fit.
+    // Anchor to center + position at world midpoint so the viewport is
+    // centered on the battlefield on all screen sizes.
+    camera.viewfinder.anchor = Anchor.center;
     camera.viewfinder.position =
         Vector2(c.worldWidthPx / 2, c.worldHeightPx / 2);
 
-    // gap B — Configure FlameAudio to load from assets/sfx/ (not the default
-    // assets/audio/ prefix that audioplayers uses), then pre-warm the cache.
-    FlameAudio.audioCache = AudioCache(prefix: 'assets/sfx/');
+    // gap B — Pre-warm SFX using a dedicated AudioCache pointed at assets/sfx/.
+    // We do NOT replace FlameAudio.audioCache (the global assignment broke the
+    // Toolkit's AudioController music by corrupting its shared cache state).
+    // Instead we create a local cache just for pre-warming, then point
+    // FlameAudio at it only for SFX play calls.
+    final sfxCache = AudioCache(prefix: 'assets/sfx/');
     try {
-      await FlameAudio.audioCache.loadAll(_sfxToPrewarm);
+      await sfxCache.loadAll(_sfxToPrewarm);
     } catch (e) {
       debugPrint('Audio pre-warm failed (continuing without SFX): $e');
     }
+    FlameAudio.audioCache = sfxCache;
 
     // Initialize game state from config constants.
     gold.value = c.startingGold;
@@ -156,10 +161,17 @@ class AgeOfWarGame extends FlameGame {
 
   /// Play an SFX, throttled by decision D8 (80ms). Returns true if the sound
   /// was allowed (not throttled), false if it was dropped.
+  // SFX audio context: mixWithOthers so SFX never steals audio focus from the
+  // background music player. Without this, every FlameAudio.play() call
+  // requests+abandons Android audio focus and interrupts the music.
+  static final _sfxContext =
+      AudioContextConfig(focus: AudioContextConfigFocus.mixWithOthers)
+          .build();
+
   bool playSound(String soundKey) {
     if (!_soundThrottle.allow(soundKey)) return false;
     try {
-      FlameAudio.play('$soundKey.mp3');
+      FlameAudio.play('$soundKey.mp3', audioContext: _sfxContext);
       return true;
     } catch (e) {
       debugPrint('SFX play failed ($soundKey): $e');

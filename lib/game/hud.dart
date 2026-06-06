@@ -35,23 +35,26 @@ class Hud extends StatelessWidget {
         if (state == GameState.loading) {
           return const _LoadingHud();
         }
-        return Stack(
-          children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: _TopBar(game: game),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: _BottomBar(game: game),
-            ),
-            // Game-over UI lives in the separate 'gameOver' overlay
-            // (registered in lib/play_session/game_widget.dart), not here.
-          ],
+        return SafeArea(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: _TopBar(game: game),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: _BottomBar(game: game),
+              ),
+              // Game-over UI lives in the separate 'gameOver' overlay
+              // (registered in lib/play_session/game_widget.dart), not here.
+            ],
+          ),
         );
       },
     );
@@ -83,45 +86,34 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.55),
         border: const Border(
           bottom: BorderSide(color: Color(0xFF445566), width: 1),
         ),
       ),
-      // Wrap, not Row — narrow screens flow to a second line instead of
-      // overflowing. The age-up button is the last item so it lands at the
-      // visual end.
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 8,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Row(
         children: [
+          // Gold
           ValueListenableBuilder<int>(
             valueListenable: game.gold,
             builder: (context, gold, _) => _Stat(
-              label: 'Gold',
+              label: '⚡',
               value: '$gold',
               color: const Color(0xFFFFCA28),
             ),
           ),
+          const SizedBox(width: 8),
+          // Progress toward age-up
           ValueListenableBuilder<int>(
             valueListenable: game.cumulativeGoldEarned,
             builder: (context, earned, _) {
-              // Earned-toward-next-age progress. Shows "X/threshold" so the
-              // player always knows how close they are to age-up.
               final next = game.config.ages[game.currentAge.value + 1];
-              if (next == null) {
-                return _Stat(
-                  label: 'Earned',
-                  value: '$earned',
-                  color: const Color(0xFFB39DDB),
-                );
-              }
+              if (next == null) return const SizedBox.shrink();
               final threshold = next.goldThresholdToAdvance ?? 0;
               return _Stat(
-                label: 'Earned',
+                label: '▲',
                 value: '$earned/$threshold',
                 color: earned >= threshold
                     ? const Color(0xFF7E57C2)
@@ -129,31 +121,38 @@ class _TopBar extends StatelessWidget {
               );
             },
           ),
+          const SizedBox(width: 8),
+          // Age name + advance button grouped together
           ValueListenableBuilder<int>(
             valueListenable: game.currentAge,
             builder: (context, age, _) => _Stat(
-              label: 'Age',
-              value: game.config.ages[age]?.name ?? '$age',
+              label: '',
+              value: game.config.ages[age]?.name ?? 'Age $age',
               color: const Color(0xFF80DEEA),
             ),
           ),
+          const SizedBox(width: 4),
+          _AgeUpButton(game: game),
+          const Spacer(),
+          // Player HP
           ValueListenableBuilder<int>(
             valueListenable: game.playerBaseHp,
             builder: (context, hp, _) => _Stat(
-              label: 'You',
+              label: '🏰',
               value: '$hp',
               color: const Color(0xFF66BB6A),
             ),
           ),
+          const SizedBox(width: 8),
+          // Enemy HP
           ValueListenableBuilder<int>(
             valueListenable: game.enemyBaseHp,
             builder: (context, hp, _) => _Stat(
-              label: 'Enemy',
+              label: '💀',
               value: '$hp',
               color: const Color(0xFFEF5350),
             ),
           ),
-          _AgeUpButton(game: game),
         ],
       ),
     );
@@ -169,16 +168,16 @@ class _Stat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          '$label: ',
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
-        ),
+        if (label.isNotEmpty)
+          Text(label, style: const TextStyle(fontSize: 12)),
+        if (label.isNotEmpty) const SizedBox(width: 2),
         Text(
           value,
           style: TextStyle(
             color: color,
-            fontSize: 16,
+            fontSize: 13,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -206,19 +205,17 @@ class _AgeUpButton extends StatelessWidget {
           builder: (context, cumulative, _) {
             final ready = cumulative >= threshold;
             return ElevatedButton(
-              onPressed: ready
-                  ? () {
-                      game.ageUp();
-                    }
-                  : null,
+              onPressed: ready ? game.ageUp : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7E57C2),
                 disabledBackgroundColor: const Color(0xFF424242),
                 foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               ),
-              child: Text(
-                ready ? 'Advance to ${next.name}' : '${next.name} ($cumulative/$threshold)',
-              ),
+              child: Text(ready ? '▲ ${next.name}' : '▲ ${next.name}'),
             );
           },
         );
@@ -234,7 +231,7 @@ class _DisabledChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: const Color(0xFF424242),
         borderRadius: BorderRadius.circular(4),
@@ -256,7 +253,7 @@ class _BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.55),
         border: const Border(
@@ -302,7 +299,7 @@ class _SpawnButton extends StatelessWidget {
             backgroundColor: const Color(0xFF455A64),
             disabledBackgroundColor: const Color(0xFF263238),
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

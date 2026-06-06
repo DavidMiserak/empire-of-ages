@@ -32,10 +32,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Put game into full screen mode on mobile devices.
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  // Lock the game to portrait mode on mobile devices.
+  // Lock the game to landscape — the battlefield is 1200×600 (wider than tall).
   await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
   ]);
 
   runApp(MyApp());
@@ -79,7 +79,8 @@ class MyApp extends StatelessWidget {
             final palette = context.watch<Palette>();
 
             return MaterialApp.router(
-              title: 'My Flutter Game',
+              title: 'Empire of Ages',
+              debugShowCheckedModeBanner: false,
               theme:
                   ThemeData.from(
                     colorScheme: ColorScheme.fromSeed(
