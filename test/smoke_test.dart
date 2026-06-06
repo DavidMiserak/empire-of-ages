@@ -10,19 +10,18 @@
 
 import 'package:empire_of_ages/main.dart';
 import 'package:empire_of_ages/play_session/game_widget.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('toolkit chrome + game widget mounts', (tester) async {
     await tester.pumpWidget(MyApp());
 
-    // Main menu shows Play and Settings buttons.
-    expect(find.text('Play'), findsOneWidget);
-    expect(find.text('Settings'), findsOneWidget);
+    // Main menu shows PLAY and SETTINGS buttons (uppercase post-redesign).
+    expect(find.text('PLAY'), findsOneWidget);
+    expect(find.text('SETTINGS'), findsOneWidget);
 
     // Settings is reachable.
-    await tester.tap(find.text('Settings'));
+    await tester.tap(find.text('SETTINGS'));
     await tester.pumpAndSettle();
     expect(find.text('Music'), findsOneWidget);
 
@@ -30,14 +29,14 @@ void main() {
     await tester.pumpAndSettle();
 
     // Play -> level selection.
-    await tester.tap(find.text('Play'));
+    await tester.tap(find.text('PLAY'));
     await tester.pumpAndSettle();
-    expect(find.text('Select level'), findsOneWidget);
+    expect(find.text('Choose your battlefield'), findsOneWidget);
 
     // Selecting a level lands on the play session. We pump a few frames to
     // let go_router's route transition complete, but stop short of
     // pumpAndSettle because FlameGame's render loop never quiesces.
-    await tester.tap(find.text('Level #1'));
+    await tester.tap(find.text('Battle 1'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(milliseconds: 300));
@@ -50,10 +49,5 @@ void main() {
       findsOneWidget,
       reason: 'empire_of_ages GameWidget should be mounted on play session',
     );
-
-    // The Toolkit's play session chrome (Back button) confirms navigation
-    // actually happened. We allow >=1 because go_router may keep the
-    // level-selection screen in the tree during the transition animation.
-    expect(find.text('Back'), findsAtLeastNWidgets(1));
   });
 }

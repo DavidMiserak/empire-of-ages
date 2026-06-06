@@ -9,56 +9,73 @@ import 'package:provider/provider.dart';
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
 import '../player_progress/player_progress.dart';
-import '../style/my_button.dart';
-import '../style/palette.dart';
-import '../style/responsive_screen.dart';
 import 'levels.dart';
+
+// Shared dark battle palette (kept in step with the title screen).
+const _bgTop = Color(0xFF1a2638);
+const _bgBottom = Color(0xFF0F1722);
+const _accent = Color(0xFFFFCA28); // gold
+const _ink = Color(0xFFE6ECF5);
 
 class LevelSelectionScreen extends StatelessWidget {
   const LevelSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.watch<Palette>();
     final playerProgress = context.watch<PlayerProgress>();
 
     return Scaffold(
-      backgroundColor: palette.backgroundLevelSelection,
-      body: ResponsiveScreen(
-        squarishMainArea: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(
-                child: Text(
-                  'Choose your battlefield',
-                  style: TextStyle(
-                    fontFamily: 'Permanent Marker',
-                    fontSize: 30,
-                  ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_bgTop, _bgBottom],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => GoRouter.of(context).go('/'),
+                      icon: const Icon(Icons.arrow_back, color: _ink),
+                      tooltip: 'Back',
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Choose your battlefield',
+                      style: TextStyle(
+                        fontFamily: 'Permanent Marker',
+                        fontSize: 26,
+                        color: _ink,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: ListView(
-                children: [
-                  for (final level in gameLevels)
-                    _LevelTile(
-                      level: level,
-                      unlocked: playerProgress.highestLevelReached >=
-                          level.number - 1,
-                    ),
-                ],
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
+                  children: [
+                    for (final level in gameLevels)
+                      _LevelTile(
+                        level: level,
+                        unlocked: playerProgress.highestLevelReached >=
+                            level.number - 1,
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-        rectangularMenuArea: MyButton(
-          onPressed: () {
-            GoRouter.of(context).go('/');
-          },
-          child: const Text('Back'),
+            ],
+          ),
         ),
       ),
     );
@@ -73,35 +90,84 @@ class _LevelTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      enabled: unlocked,
-      onTap: unlocked
-          ? () {
-              final audioController = context.read<AudioController>();
-              audioController.playSfx(SfxType.buttonTap);
-              GoRouter.of(context).go('/play/session/${level.number}');
-            }
-          : null,
-      leading: CircleAvatar(
-        backgroundColor: unlocked
-            ? const Color(0xFF7E57C2)
-            : Colors.black26,
-        foregroundColor: Colors.white,
-        child: unlocked
-            ? Text(
-                '${level.number}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              )
-            : const Icon(Icons.lock, size: 18),
-      ),
-      title: Text(
-        'Battle ${level.number}',
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-      ),
-      subtitle: Text(
-        unlocked
-            ? 'Tap to deploy'
-            : 'Win Battle ${level.number - 1} to unlock',
+    final onTap = unlocked
+        ? () {
+            final audioController = context.read<AudioController>();
+            audioController.playSfx(SfxType.buttonTap);
+            GoRouter.of(context).go('/play/session/${level.number}');
+          }
+        : null;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: unlocked
+            ? Colors.white.withValues(alpha: 0.04)
+            : Colors.white.withValues(alpha: 0.02),
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 14,
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: unlocked
+                      ? _accent
+                      : Colors.white.withValues(alpha: 0.08),
+                  foregroundColor: unlocked ? _bgTop : _ink.withValues(alpha: 0.4),
+                  child: unlocked
+                      ? Text(
+                          '${level.number}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        )
+                      : const Icon(Icons.lock, size: 20),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Battle ${level.number}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 17,
+                          color: unlocked
+                              ? _ink
+                              : _ink.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        unlocked
+                            ? 'Tap to deploy'
+                            : 'Win Battle ${level.number - 1} to unlock',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _ink.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (unlocked)
+                  Icon(
+                    Icons.chevron_right,
+                    color: _ink.withValues(alpha: 0.5),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
