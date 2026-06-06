@@ -170,29 +170,73 @@ class AgeOfWarGame extends FlameGame {
     final topRowY = groundY - grassSurfaceOffset;
     final secondRowY = topRowY + tilePx;
 
-    // Grass green sampled to match the Tiny Swords grass-cap tile, so the
-    // background fill and the tile row read as continuous grass.
+    // Grass green sampled to match the Tiny Swords grass-cap tile. Used as
+    // a base fill behind the grass tile field so any sub-pixel gaps between
+    // tiled sprites don't show as dark slivers.
     const grassGreen = Color(0xFF9DBE3E);
 
-    // Grass field background: covers the whole area above the surface tile
-    // row. Priority -20 keeps it behind the tile sprites (-10) and units (0+).
+    // Base grass fill: covers the whole area above the surface tile row.
+    // Priority -25 keeps it behind grass field tiles (-20), tile row (-10),
+    // and units (0+).
     world.add(RectangleComponent(
       position: Vector2(0, 0),
       size: Vector2(worldWidth, topRowY),
       paint: Paint()..color = grassGreen,
-      priority: -20,
+      priority: -25,
     ));
 
     final tilemap = await images.load('tiny_swords/terrain/tilemap.png');
     final sheet = SpriteSheet(image: tilemap, srcSize: Vector2.all(tilePx));
-    // Right-half side-view tiles. (row, column) per SpriteSheet API.
-    //   (2, 6) — grass-capped surface tile (top of the grass cluster)
-    //   (5, 6) — pure stone wall tile (bottom of the stone cluster)
-    // Picking row 5 (not 3 or 4) is important: rows 3-4 still carry grass
-    // trim from the grass cluster transition, which renders as an unwanted
-    // horizontal "stone trim" line between the surface and body rows.
+    // Tile coordinates (row, col) per SpriteSheet API.
+    //   (0..1, 0..1) — 2×2 top-down grass field block (used to tile the
+    //     background grass; the four cells form one complete grass square
+    //     with tuft borders that align when tiled at 2-tile intervals).
+    //   (2, 6) — grass-capped side-view surface tile (top of the right
+    //     cluster's grass section), what feet plant on.
+    //   (5, 6) — pure stone wall tile (bottom of the stone cluster). Rows
+    //     3-4 still carry grass trim, so row 5 is the first clean stone.
+    final grassFieldTopLeft = sheet.getSprite(0, 0);
+    final grassFieldTopRight = sheet.getSprite(0, 1);
+    final grassFieldBottomLeft = sheet.getSprite(1, 0);
+    final grassFieldBottomRight = sheet.getSprite(1, 1);
     final grassTile = sheet.getSprite(2, 6);
     final stoneTile = sheet.getSprite(5, 6);
+
+    // Tile the grass field background in 2×2 blocks. Each 128×128 cell holds
+    // one full 2×2 grass square; the tuft borders line up across cells so
+    // the field reads as a continuous grass texture, not a grid of clumps.
+    final fieldCols = (worldWidth / (tilePx * 2)).ceil();
+    final fieldRows = (topRowY / (tilePx * 2)).ceil();
+    for (var ry = 0; ry < fieldRows; ry++) {
+      for (var rx = 0; rx < fieldCols; rx++) {
+        final ox = rx * tilePx * 2;
+        final oy = ry * tilePx * 2;
+        world.add(SpriteComponent(
+          sprite: grassFieldTopLeft,
+          size: Vector2.all(tilePx),
+          position: Vector2(ox, oy),
+          priority: -20,
+        ));
+        world.add(SpriteComponent(
+          sprite: grassFieldTopRight,
+          size: Vector2.all(tilePx),
+          position: Vector2(ox + tilePx, oy),
+          priority: -20,
+        ));
+        world.add(SpriteComponent(
+          sprite: grassFieldBottomLeft,
+          size: Vector2.all(tilePx),
+          position: Vector2(ox, oy + tilePx),
+          priority: -20,
+        ));
+        world.add(SpriteComponent(
+          sprite: grassFieldBottomRight,
+          size: Vector2.all(tilePx),
+          position: Vector2(ox + tilePx, oy + tilePx),
+          priority: -20,
+        ));
+      }
+    }
 
     final cols = (worldWidth / tilePx).ceil();
     for (var i = 0; i < cols; i++) {

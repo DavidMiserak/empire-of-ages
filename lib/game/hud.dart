@@ -77,11 +77,13 @@ class HudTopBar extends StatelessWidget {
   }
 }
 
-/// Left sidebar — spawn buttons + age-up.
+/// Left sidebar — spawn buttons + back-to-level-select.
 /// Rendered as a Flutter widget left of the game canvas in PlaySessionScreen.
+/// [onBack] adds an optional back-arrow at the bottom of the sidebar.
 class HudSpawnSidebar extends StatelessWidget {
   final AgeOfWarGame game;
-  const HudSpawnSidebar({required this.game, super.key});
+  final VoidCallback? onBack;
+  const HudSpawnSidebar({required this.game, this.onBack, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -94,8 +96,27 @@ class HudSpawnSidebar extends StatelessWidget {
         return Container(
           color: const Color(0xFF0F1722),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-          child: Center(
-            child: _SpawnPanel(game: game),
+          child: Column(
+            children: [
+              if (onBack != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: IconButton(
+                    onPressed: onBack,
+                    icon: const Icon(Icons.arrow_back),
+                    color: Colors.white70,
+                    tooltip: 'Back to level select',
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.black38,
+                    ),
+                  ),
+                ),
+              Expanded(
+                child: Center(
+                  child: _SpawnPanel(game: game),
+                ),
+              ),
+            ],
           ),
         );
       },

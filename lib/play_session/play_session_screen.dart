@@ -98,7 +98,9 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
               // Main layout: top bar full-width, then a row with the spawn
               // sidebar on the left and the game canvas filling the rest.
               // The game canvas does NOT render behind the sidebar — they
-              // are siblings in the layout, not stacked.
+              // are siblings in the layout, not stacked. The back-to-level
+              // arrow lives at the bottom of the sidebar (not floating over
+              // the canvas).
               SafeArea(
                 child: Column(
                   children: [
@@ -109,7 +111,10 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
                         children: [
                           SizedBox(
                             width: _sidebarWidth,
-                            child: HudSpawnSidebar(game: _game),
+                            child: HudSpawnSidebar(
+                              game: _game,
+                              onBack: () => GoRouter.of(context).go('/play'),
+                            ),
                           ),
                           Expanded(
                             child: GameWidget(game: _game),
@@ -118,22 +123,6 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
                       ),
                     ),
                   ],
-                ),
-              ),
-              // Back-to-level-select button floats over the bottom-left corner
-              // of the game canvas.
-              Positioned(
-                bottom: 8,
-                left: _sidebarWidth + 8,
-                child: SafeArea(
-                  child: IconButton(
-                    onPressed: () => GoRouter.of(context).go('/play'),
-                    icon: const Icon(Icons.arrow_back),
-                    color: Colors.white70,
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.black38,
-                    ),
-                  ),
                 ),
               ),
               // Winning confetti overlay.
