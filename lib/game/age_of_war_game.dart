@@ -15,6 +15,7 @@
 
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
+import 'package:flame/sprite.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 
@@ -109,13 +110,13 @@ class AgeOfWarGame extends FlameGame {
     playerBaseHp.value = c.playerBaseHp;
     enemyBaseHp.value = c.enemyBaseHp;
 
-    // Ground stripe so the camera resolution is visually verifiable.
-    world.add(
-      RectangleComponent(
-        position: Vector2(0, c.groundY),
-        size: Vector2(c.worldWidthPx, c.worldHeightPx - c.groundY),
-        paint: Paint()..color = const Color(0xFF4a3826), // earth
-      ),
+    // Battlefield ground: tile Tiny Swords' side-view grass + stone tiles
+    // along the ground line, with a darker earth fill underneath for any
+    // gap between the bottom tile row and the world bottom.
+    await _buildTerrain(
+      worldWidth: c.worldWidthPx,
+      worldHeight: c.worldHeightPx,
+      groundY: c.groundY,
     );
 
     // Two Bases at the world's left/right edges (positions from ages.yaml).
@@ -143,6 +144,41 @@ class AgeOfWarGame extends FlameGame {
       return;
     }
     super.update(dt);
+  }
+
+  /// Tile the Tiny Swords terrain across the battlefield. One row of
+  /// grass-on-stone tiles sits flush with the ground line; an earth-colour
+  /// rectangle fills any space left between the tile row and the world's
+  /// bottom edge.
+  Future<void> _buildTerrain({
+    required double worldWidth,
+    required double worldHeight,
+    required double groundY,
+  }) async {
+    const tilePx = 64.0;
+    final tilemap = await images.load('tiny_swords/terrain/tilemap.png');
+    final sheet = SpriteSheet(image: tilemap, srcSize: Vector2.all(tilePx));
+    // Right-half side-view tiles: grass cap on stone block, picked from
+    // the tilemap's lower-right cluster. (row, column) per SpriteSheet API.
+    final groundTile = sheet.getSprite(2, 6);
+
+    final cols = (worldWidth / tilePx).ceil();
+    for (var i = 0; i < cols; i++) {
+      world.add(SpriteComponent(
+        sprite: groundTile,
+        size: Vector2.all(tilePx),
+        position: Vector2(i * tilePx, groundY),
+      ));
+    }
+    // Earth fill for the strip below the tile row.
+    final fillTop = groundY + tilePx;
+    if (fillTop < worldHeight) {
+      world.add(RectangleComponent(
+        position: Vector2(0, fillTop),
+        size: Vector2(worldWidth, worldHeight - fillTop),
+        paint: Paint()..color = const Color(0xFF2A2018),
+      ));
+    }
   }
 
   /// Called by [Base.takeDamage] when one Base reaches 0 HP.
