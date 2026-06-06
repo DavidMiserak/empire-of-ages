@@ -72,16 +72,8 @@ class Unit extends PositionComponent with HasGameReference<AgeOfWarGame> {
       paint: Paint()..color = _baseBodyColor,
     );
     add(_body);
-    add(
-      TextComponent(
-        text: def.id,
-        anchor: Anchor.topCenter,
-        position: Vector2(size.x / 2, -10),
-        textRenderer: TextPaint(
-          style: const TextStyle(color: Colors.white, fontSize: 9),
-        ),
-      ),
-    );
+    // No per-unit text label: when units stack, labels collided into an
+    // unreadable mush. Side + role read from rectangle colour instead.
   }
 
   @override

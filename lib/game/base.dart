@@ -55,19 +55,10 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
       paint: Paint()..color = _baseBodyColor,
     );
     add(_body);
-    add(
-      TextComponent(
-        text: side == Side.player ? 'PLAYER' : 'ENEMY',
-        anchor: Anchor.bottomCenter,
-        position: Vector2(size.x / 2, -8),
-        textRenderer: TextPaint(
-          style: const TextStyle(color: Colors.white, fontSize: 12),
-        ),
-      ),
-    );
-    // HP bar floats above the text label.
+    // HP bar floats just above the base. PLAYER / ENEMY text labels removed —
+    // side is already encoded by colour + screen position.
     _hpBar = _HpBar(owner: this)
-      ..position = Vector2(size.x / 2, -26)
+      ..position = Vector2(size.x / 2, -8)
       ..anchor = Anchor.bottomCenter;
     add(_hpBar);
 
