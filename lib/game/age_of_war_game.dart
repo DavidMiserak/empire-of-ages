@@ -64,13 +64,17 @@ class AgeOfWarGame extends FlameGame {
     config = await GameConfig.load();
     final c = config.constants;
 
-    // gap D — Fixed-resolution camera matching world dimensions from
-    // ages.yaml. Age of War never scrolls; the world is a fixed-size canvas
-    // that letterboxes to whatever screen it lands on.
-    camera = CameraComponent.withFixedResolution(
-      width: c.worldWidthPx,
-      height: c.worldHeightPx,
-    );
+    // gap D — Fixed-resolution view: the world is a fixed-size canvas
+    // (width × height from ages.yaml) and the viewfinder maps it onto
+    // whatever screen size we get. We configure the EXISTING camera
+    // (FlameGame already created it pointing at `world`) instead of
+    // reassigning, which would orphan our world from the new camera.
+    camera.viewfinder.visibleGameSize =
+        Vector2(c.worldWidthPx, c.worldHeightPx);
+    // Centre the visible area on the middle of the world so units near the
+    // left/right edges aren't clipped by the auto-fit.
+    camera.viewfinder.position =
+        Vector2(c.worldWidthPx / 2, c.worldHeightPx / 2);
 
     // gap B — Pre-warm the FlameAudio cache to kill 100–300ms first-play
     // latency on Android. No-op while the list is empty. Wrapped so a missing

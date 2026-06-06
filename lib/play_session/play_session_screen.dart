@@ -76,36 +76,31 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
           // of the game.
           body: Stack(
             children: [
-              // This is the main layout of the play session screen,
-              // with a settings button on top, the actual play area
-              // in the middle, and a back button at the bottom.
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: InkResponse(
-                      onTap: () => GoRouter.of(context).push('/settings'),
-                      child: Image.asset(
-                        'assets/images/settings.png',
-                        semanticLabel: 'Settings',
-                      ),
-                    ),
+              // Empire of Ages — full-bleed game; Toolkit settings + back
+              // controls float on top via Positioned widgets so the FlameGame
+              // canvas (and the HUD overlay it hosts) gets every available
+              // pixel. T6+ swapped this from the Toolkit's slider-puzzle
+              // layout where a 1/3-height GameWidget made sense.
+              const Positioned.fill(child: GameWidget()),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: InkResponse(
+                  onTap: () => GoRouter.of(context).push('/settings'),
+                  child: Image.asset(
+                    'assets/images/settings.png',
+                    semanticLabel: 'Settings',
+                    width: 40,
                   ),
-                  const Spacer(),
-                  const Expanded(
-                    // The actual UI of the game.
-                    child: GameWidget(),
-                  ),
-                  const Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: MyButton(
-                      onPressed: () => GoRouter.of(context).go('/play'),
-                      child: const Text('Back'),
-                    ),
-                  ),
-                ],
+                ),
+              ),
+              Positioned(
+                bottom: 8,
+                left: 8,
+                child: MyButton(
+                  onPressed: () => GoRouter.of(context).go('/play'),
+                  child: const Text('Back'),
+                ),
               ),
               // This is the confetti animation that is overlaid on top of the
               // game when the player wins.
