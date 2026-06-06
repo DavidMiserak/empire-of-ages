@@ -54,9 +54,12 @@ class _SpriteCfg {
 }
 
 const _spriteConfigs = <String, _SpriteCfg>{
-  'warrior': _SpriteCfg(prefix: 'warrior', frameSize: 192, runFrames: 6, attackFrames: 4, renderSize: 96),
-  'archer':  _SpriteCfg(prefix: 'archer',  frameSize: 192, runFrames: 4, attackFrames: 8, renderSize: 96),
-  'lancer':  _SpriteCfg(prefix: 'lancer',  frameSize: 320, runFrames: 6, attackFrames: 3, renderSize: 128),
+  // Age 1 — Tiny Swords monk: run=4 frames (768×192), attack=Heal anim 11 frames (2112×192)
+  'monk':    _SpriteCfg(prefix: 'monk',    frameSize: 192, runFrames: 4, attackFrames: 11, renderSize: 96),
+  // Age 2 — Medieval roster
+  'warrior': _SpriteCfg(prefix: 'warrior', frameSize: 192, runFrames: 6, attackFrames: 4,  renderSize: 96),
+  'archer':  _SpriteCfg(prefix: 'archer',  frameSize: 192, runFrames: 4, attackFrames: 8,  renderSize: 96),
+  'lancer':  _SpriteCfg(prefix: 'lancer',  frameSize: 320, runFrames: 6, attackFrames: 3,  renderSize: 128),
 };
 
 class Unit extends PositionComponent with HasGameReference<AgeOfWarGame> {
