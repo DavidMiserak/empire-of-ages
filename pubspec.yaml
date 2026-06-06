@@ -42,6 +42,7 @@ flutter:
     - assets/images/tiny_swords/buildings/
     - assets/images/tiny_swords/resources/
     - assets/images/tiny_swords/terrain/
+    - assets/images/tiny_swords/terrain/decorations/
     - assets/images/tiny_swords/units/blue/warrior/
     - assets/images/tiny_swords/units/blue/archer/
     - assets/images/tiny_swords/units/blue/lancer/
