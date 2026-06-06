@@ -27,7 +27,7 @@ ages:
 
   - id: 2
     name: "Medieval"
-    # Reachable threshold: ~12 clubman kills (25g each) or ~7 slinger kills (40g
+    # Reachable threshold: ~12 monk kills (25g each) or ~7 slinger kills (40g
     # each) — match length should put the player there within 2-3 min if
     # balance holds (was 500).
     gold_threshold_to_advance: 300

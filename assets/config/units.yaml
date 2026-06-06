@@ -16,15 +16,15 @@
 
 units:
   # ---------- Age 1: Stone Age ----------
-  - id: clubman
+  - id: monk
     age: 1
-    name: "Clubman"
+    name: "Monk"
     hp: 50
     dmg: 8
     speed: 30
     cost: 20
     gold_reward: 25
-    sprite: "units/age1/clubman.png"
+    sprite: "tiny_swords/units/blue/monk/run.png"
 
   - id: slinger
     age: 1

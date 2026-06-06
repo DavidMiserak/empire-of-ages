@@ -20,7 +20,7 @@
 // Sprites: Medieval-age units (warrior / archer / lancer — names matched to
 // the Tiny Swords sprite folders) render as SpriteAnimationComponents (Blue
 // faction for player, Red for enemy, mirrored on enemy side so they face
-// left toward the player). Stone-age units (clubman / slinger / dino_rider)
+// left toward the player). Stone-age units (monk / slinger / dino_rider)
 // keep the colored-rectangle fallback — Tiny Swords has no prehistoric
 // sprites.
 
