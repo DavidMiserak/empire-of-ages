@@ -327,24 +327,45 @@ class _SpawnButton extends StatelessWidget {
             backgroundColor: const Color(0xFF455A64),
             disabledBackgroundColor: const Color(0xFF263238),
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            disabledForegroundColor: Colors.white38,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 def.name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
               ),
               const SizedBox(height: 2),
-              Text(
-                '${def.cost} gold',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: affordable
-                      ? const Color(0xFFFFCA28)
-                      : Colors.white38,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.bolt,
+                    size: 14,
+                    color: affordable
+                        ? const Color(0xFFFFCA28)
+                        : Colors.white38,
+                  ),
+                  Text(
+                    '${def.cost}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: affordable
+                          ? const Color(0xFFFFCA28)
+                          : Colors.white38,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
