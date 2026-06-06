@@ -92,3 +92,6 @@ app.*.map.json
 
 # Migration scratch
 migrate_working_dir/
+
+# FVM Version Cache
+.fvm/

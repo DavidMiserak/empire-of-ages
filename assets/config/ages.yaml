@@ -1,0 +1,58 @@
+# Empire of Ages — age definitions + game-wide constants
+# Loaded once at AgeOfWarGame.onLoad() per design D5.
+#
+# Age progression model (decision H: gold = kills-only):
+#   - Each Base tracks `cumulative_gold_earned` (only increases, separate from current balance).
+#   - When cumulative_gold_earned >= ages[currentAge + 1].gold_threshold, age-up button enables.
+#   - Tapping age-up advances the player to the next age (sprite swap + sound + new spawn options).
+#
+# Enemy difficulty curve (outside-voice gap G):
+#   - Enemy Base spawns on an interval (ms) that DECAYS over elapsed match time.
+#   - Every 30s elapsed, interval *= (1 - enemy_spawn_decay), with a floor at enemy_spawn_floor_ms.
+#   - When enemy advances ages, its interval resets to the new age's enemy_spawn_interval_ms.
+
+ages:
+  - id: 1
+    name: "Stone Age"
+    # null = age 1 is the starting age; no threshold to "advance to" it
+    gold_threshold_to_advance: null
+    enemy_spawn_interval_ms: 2000
+    enemy_spawn_decay: 0.10
+    enemy_spawn_floor_ms: 800
+    # Placeholders until T2 picks real assets
+    bg_sprite: "bg/age1.png"
+    music: "music/age1.mp3"
+
+  - id: 2
+    name: "Medieval"
+    gold_threshold_to_advance: 500
+    enemy_spawn_interval_ms: 1500
+    enemy_spawn_decay: 0.10
+    enemy_spawn_floor_ms: 800
+    bg_sprite: "bg/age2.png"
+    music: "music/age2.mp3"
+
+# Game-wide constants
+# Magic numbers belong here, not in code (eng-review code-quality finding #2).
+game:
+  starting_gold: 175
+  player_base_hp: 1000
+  enemy_base_hp: 1000
+
+  # Fixed-viewport world dimensions (outside-voice gap D: CameraComponent + Viewport.fixedSize).
+  # Camera does not scroll in Age of War; bases are at fixed x positions.
+  world_width_px: 1200
+  world_height_px: 600
+
+  # Base positions in world coordinates
+  player_base_x: 100
+  enemy_base_x: 1100
+
+  # Ground line (y coordinate where units walk)
+  ground_y: 480
+
+  # Spawn-button rapid-tap window (ms); presses within this window after a successful spawn no-op
+  spawn_debounce_ms: 100
+
+  # Audio throttle (decision D8): same SFX within this window plays only once
+  sfx_throttle_ms: 80

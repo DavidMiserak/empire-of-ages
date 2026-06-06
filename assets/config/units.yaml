@@ -1,0 +1,80 @@
+# Empire of Ages — unit catalog
+# Loaded once at AgeOfWarGame.onLoad() per design D5.
+# v1 = 2 ages, 3 units each. Numbers are first-pass — tune during T6+ playtesting.
+#
+# Field reference:
+#   id            stable identifier, used in code as Map<String, UnitDef> key
+#   age           which age unlocks this unit (1 or 2)
+#   name          display name (HUD label)
+#   hp            starting hit points
+#   dmg           damage per attack tick
+#   speed         walking pixels per second
+#   cost          gold to spawn (deducted from current gold)
+#   gold_reward   gold granted to the killer's Base when this unit dies (decision H: kills-only economy)
+#   sprite        asset path under assets/ (placeholder until T2 picks real spritesheets)
+#   range         (optional) attack range in pixels; absence = melee (range 0, attacks on contact)
+
+units:
+  # ---------- Age 1: Stone Age ----------
+  - id: clubman
+    age: 1
+    name: "Clubman"
+    hp: 50
+    dmg: 8
+    speed: 30
+    cost: 20
+    gold_reward: 25
+    sprite: "units/age1/clubman.png"
+
+  - id: slinger
+    age: 1
+    name: "Slinger"
+    hp: 35
+    dmg: 12
+    speed: 25
+    cost: 35
+    gold_reward: 40
+    range: 80
+    sprite: "units/age1/slinger.png"
+
+  - id: dino_rider
+    age: 1
+    name: "Dino Rider"
+    hp: 150
+    dmg: 18
+    speed: 22
+    cost: 75
+    gold_reward: 90
+    sprite: "units/age1/dino_rider.png"
+
+  # ---------- Age 2: Medieval ----------
+  - id: knight
+    age: 2
+    name: "Knight"
+    hp: 200
+    dmg: 25
+    speed: 30
+    cost: 100
+    gold_reward: 120
+    sprite: "units/age2/knight.png"
+
+  - id: archer
+    age: 2
+    name: "Archer"
+    hp: 80
+    dmg: 35
+    speed: 25
+    cost: 150
+    gold_reward: 175
+    range: 100
+    sprite: "units/age2/archer.png"
+
+  - id: cavalry
+    age: 2
+    name: "Cavalry"
+    hp: 400
+    dmg: 50
+    speed: 35
+    cost: 250
+    gold_reward: 300
+    sprite: "units/age2/cavalry.png"
