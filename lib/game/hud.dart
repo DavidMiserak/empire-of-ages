@@ -107,6 +107,29 @@ class _TopBar extends StatelessWidget {
             ),
           ),
           ValueListenableBuilder<int>(
+            valueListenable: game.cumulativeGoldEarned,
+            builder: (context, earned, _) {
+              // Earned-toward-next-age progress. Shows "X/threshold" so the
+              // player always knows how close they are to age-up.
+              final next = game.config.ages[game.currentAge.value + 1];
+              if (next == null) {
+                return _Stat(
+                  label: 'Earned',
+                  value: '$earned',
+                  color: const Color(0xFFB39DDB),
+                );
+              }
+              final threshold = next.goldThresholdToAdvance ?? 0;
+              return _Stat(
+                label: 'Earned',
+                value: '$earned/$threshold',
+                color: earned >= threshold
+                    ? const Color(0xFF7E57C2)
+                    : const Color(0xFFB39DDB),
+              );
+            },
+          ),
+          ValueListenableBuilder<int>(
             valueListenable: game.currentAge,
             builder: (context, age, _) => _Stat(
               label: 'Age',
@@ -305,4 +328,3 @@ class _SpawnButton extends StatelessWidget {
     );
   }
 }
-

@@ -29,6 +29,13 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
   double _currentSpawnIntervalSec = 0.0;
   final math.Random _rng = math.Random();
 
+  // Damage flash + HP bar (game-feel polish)
+  late final RectangleComponent _body;
+  late final Color _baseBodyColor;
+  late final _HpBar _hpBar;
+  double _flashRemaining = 0.0;
+  static const double _flashDuration = 0.15;
+
   Base({required this.side, required Vector2 position, required this.maxHp})
       : hp = maxHp,
         super(
@@ -40,15 +47,14 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
   @override
   Future<void> onLoad() async {
     // Placeholder rectangle. T2 will replace with real sprite.
-    add(
-      RectangleComponent(
-        size: size,
-        paint: Paint()
-          ..color = side == Side.player
-              ? const Color(0xFF2E7D32) // green for player
-              : const Color(0xFFC62828), // red for enemy
-      ),
+    _baseBodyColor = side == Side.player
+        ? const Color(0xFF2E7D32) // green for player
+        : const Color(0xFFC62828); // red for enemy
+    _body = RectangleComponent(
+      size: size,
+      paint: Paint()..color = _baseBodyColor,
     );
+    add(_body);
     add(
       TextComponent(
         text: side == Side.player ? 'PLAYER' : 'ENEMY',
@@ -59,6 +65,11 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
         ),
       ),
     );
+    // HP bar floats above the text label.
+    _hpBar = _HpBar(owner: this)
+      ..position = Vector2(size.x / 2, -26)
+      ..anchor = Anchor.bottomCenter;
+    add(_hpBar);
 
     if (side == Side.enemy) {
       _currentSpawnIntervalSec =
@@ -78,12 +89,19 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
         _recomputeSpawnInterval();
       }
     }
+    // Damage flash decay
+    if (_flashRemaining > 0) {
+      _flashRemaining = (_flashRemaining - dt).clamp(0.0, _flashDuration);
+      final t = _flashRemaining / _flashDuration;
+      _body.paint.color = Color.lerp(_baseBodyColor, Colors.white, t)!;
+    }
   }
 
   /// Apply damage. When HP hits 0, fire game.endMatch() so the game freezes.
   void takeDamage(int amount) {
     if (hp == 0) return;
     hp = (hp - amount).clamp(0, maxHp);
+    _flashRemaining = _flashDuration;
     if (side == Side.player) {
       game.playerBaseHp.value = hp;
     } else {
@@ -147,11 +165,52 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
   /// [AgeOfWarGame.reset] on Play Again.
   void reset() {
     hp = maxHp;
+    _flashRemaining = 0.0;
+    _body.paint.color = _baseBodyColor;
     _elapsedMatchSeconds = 0.0;
     _timeSinceLastSpawn = 0.0;
     if (side == Side.enemy) {
       _currentSpawnIntervalSec =
           game.config.ages[game.currentAge.value]!.enemySpawnIntervalMs / 1000.0;
     }
+  }
+}
+
+/// HP bar that floats above its owner Base. Width fills the parent Base.
+/// Colour shifts green → yellow → red as HP drops. Reads owner.hp every
+/// frame — simple and avoids ValueNotifier plumbing inside the FlameGame
+/// component tree.
+class _HpBar extends PositionComponent {
+  final Base owner;
+  late final RectangleComponent _bg;
+  late final RectangleComponent _fg;
+  static const double _hpBarWidth = 80;
+  static const double _hpBarHeight = 6;
+
+  _HpBar({required this.owner})
+      : super(size: Vector2(_hpBarWidth, _hpBarHeight));
+
+  @override
+  Future<void> onLoad() async {
+    _bg = RectangleComponent(
+      size: size,
+      paint: Paint()..color = Colors.black.withValues(alpha: 0.55),
+    );
+    _fg = RectangleComponent(
+      size: Vector2(size.x, size.y),
+      paint: Paint()..color = const Color(0xFF66BB6A),
+    );
+    add(_bg);
+    add(_fg);
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    final ratio = (owner.hp / owner.maxHp).clamp(0.0, 1.0);
+    _fg.size.x = size.x * ratio;
+    // 0..1 → red (0°) → yellow (60°) → green (120°)
+    final hue = ratio * 120;
+    _fg.paint.color = HSVColor.fromAHSV(1.0, hue, 0.65, 0.85).toColor();
   }
 }

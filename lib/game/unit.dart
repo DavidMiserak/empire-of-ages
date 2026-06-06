@@ -32,6 +32,12 @@ class Unit extends PositionComponent with HasGameReference<AgeOfWarGame> {
   double _timeSinceAttack = 0.0;
   PositionComponent? _target;
 
+  // Damage flash (game-feel polish)
+  late final RectangleComponent _body;
+  late final Color _baseBodyColor;
+  double _flashRemaining = 0.0;
+  static const double _flashDuration = 0.10;
+
   /// Seconds between attack ticks. Constant across all units in v1.
   static const double _attackCadenceSec = 0.6;
 
@@ -54,14 +60,18 @@ class Unit extends PositionComponent with HasGameReference<AgeOfWarGame> {
     // Placeholder colored rectangle. T2 replaces with real spritesheet.
     // Colour encodes side + role: green/blue = player melee/ranged,
     // orange/red = enemy melee/ranged.
-    final color = side == Side.player
+    _baseBodyColor = side == Side.player
         ? (def.range != null
             ? const Color(0xFF1565C0)
             : const Color(0xFF388E3C))
         : (def.range != null
             ? const Color(0xFFD32F2F)
             : const Color(0xFFEF6C00));
-    add(RectangleComponent(size: size, paint: Paint()..color = color));
+    _body = RectangleComponent(
+      size: size,
+      paint: Paint()..color = _baseBodyColor,
+    );
+    add(_body);
     add(
       TextComponent(
         text: def.id,
@@ -78,6 +88,13 @@ class Unit extends PositionComponent with HasGameReference<AgeOfWarGame> {
   void update(double dt) {
     super.update(dt);
     if (hp <= 0) return; // dying handled in _takeDamage
+
+    // Damage-flash decay (lerps body colour back from white).
+    if (_flashRemaining > 0) {
+      _flashRemaining = (_flashRemaining - dt).clamp(0.0, _flashDuration);
+      final t = _flashRemaining / _flashDuration;
+      _body.paint.color = Color.lerp(_baseBodyColor, Colors.white, t)!;
+    }
 
     // Drop stale target (parent removed = was removed from world; or its hp ≤ 0)
     if (_target != null) {
@@ -151,6 +168,7 @@ class Unit extends PositionComponent with HasGameReference<AgeOfWarGame> {
 
   void _takeDamage(int amount, {Unit? killer}) {
     hp = (hp - amount).clamp(0, def.hp);
+    _flashRemaining = _flashDuration;
     if (hp == 0) {
       _die(killer: killer);
     }

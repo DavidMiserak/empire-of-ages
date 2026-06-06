@@ -8,14 +8,14 @@ Spawn units from your base, earn gold from kills, advance through ages, and dest
 
 The game is a playable v1 prototype with two ages (Stone and Medieval), a full combat loop, HUD overlay, and game-over flow with Play Again.
 
-| Area | Status |
-|------|--------|
-| Main menu, settings, level selection | From Casual Games Toolkit scaffold |
-| YAML-driven game config | Units, ages, balance constants in `assets/config/` |
-| Combat | Unit walk/attack FSM, melee and ranged, enemy AI spawning |
-| HUD | Gold, age, HP, spawn buttons, age-up |
-| Game over | Victory/defeat overlay + reset |
-| Platforms | Android (primary), web, Linux (dev) |
+| Area                                 | Status                                                    |
+| ------------------------------------ | --------------------------------------------------------- |
+| Main menu, settings, level selection | From Casual Games Toolkit scaffold                        |
+| YAML-driven game config              | Units, ages, balance constants in `assets/config/`        |
+| Combat                               | Unit walk/attack FSM, melee and ranged, enemy AI spawning |
+| HUD                                  | Gold, age, HP, spawn buttons, age-up                      |
+| Game over                            | Victory/defeat overlay + reset                            |
+| Platforms                            | Android (primary), web, Linux (dev)                       |
 
 Planned v2 work (ages 3–5, tech tree, turrets, distribution) is tracked in [`TODOS.md`](TODOS.md).
 
@@ -116,15 +116,15 @@ test/
 
 ## Commit history (high level)
 
-| Commit | Summary |
-|--------|---------|
-| Bootstrap | Casual Games Toolkit template, renamed to `empire_of_ages` |
-| Tooling | FVM pin, Makefile targets for run/test/build |
-| Config | Typed YAML layer (`units.yaml`, `ages.yaml`, freezed models) |
-| Game core | `AgeOfWarGame` Flame skeleton, fixed-resolution camera |
-| Combat | Bases, units, enemy AI, HUD overlay |
-| Fixes | Camera/world wiring, full-bleed play session layout |
-| Polish | Game-over overlay, Play Again reset, first balance pass |
+| Commit    | Summary                                                      |
+| --------- | ------------------------------------------------------------ |
+| Bootstrap | Casual Games Toolkit template, renamed to `empire_of_ages`   |
+| Tooling   | FVM pin, Makefile targets for run/test/build                 |
+| Config    | Typed YAML layer (`units.yaml`, `ages.yaml`, freezed models) |
+| Game core | `AgeOfWarGame` Flame skeleton, fixed-resolution camera       |
+| Combat    | Bases, units, enemy AI, HUD overlay                          |
+| Fixes     | Camera/world wiring, full-bleed play session layout          |
+| Polish    | Game-over overlay, Play Again reset, first balance pass      |
 
 ## Credits
 

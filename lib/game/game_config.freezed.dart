@@ -666,7 +666,7 @@ as GameConstants,
 @override
 @pragma('vm:prefer-inline')
 $GameConstantsCopyWith<$Res> get constants {
-  
+
   return $GameConstantsCopyWith<$Res>(_self.constants, (value) {
     return _then(_self.copyWith(constants: value));
   });
@@ -891,7 +891,7 @@ as GameConstants,
 @override
 @pragma('vm:prefer-inline')
 $GameConstantsCopyWith<$Res> get constants {
-  
+
   return $GameConstantsCopyWith<$Res>(_self.constants, (value) {
     return _then(_self.copyWith(constants: value));
   });
