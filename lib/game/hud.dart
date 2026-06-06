@@ -70,13 +70,13 @@ class Hud extends StatelessWidget {
                 child: _TopBar(game: game),
               ),
               // Spawn buttons floated above the player castle's roof so the
-              // bottom of the battlefield (grass strip) stays visible. Tuned
-              // for landscape ~853×384 dp; on taller screens the panel will
-              // sit a touch higher relative to the castle but stays above.
+              // bottom of the battlefield (grass strip + castle silhouette)
+              // stays visible. Bottom anchor 165dp clears the castle's top
+              // edge on the reference landscape phone (~384dp tall logical).
               // The back-to-level-select affordance lives in the surrounding
               // PlaySessionScreen, not here, so we don't double it up.
               Positioned(
-                bottom: 100,
+                bottom: 165,
                 left: 12,
                 child: _SpawnPanel(game: game),
               ),
