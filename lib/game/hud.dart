@@ -60,13 +60,15 @@ class Hud extends StatelessWidget {
           return const _LoadingHud();
         }
 
-        // Responsive spawn panel positioning (DESIGN.md: Responsive Multiplatform Spec).
-        // Formula: bottom = viewportHeight × 0.40 (40% of viewport from bottom)
-        // Positions spawn panel to show ground sprites on all screen sizes.
+        // Spawn panel positioned to align with SpawnPanelComponent in game world.
+        // The component renders at world coords (180, 490), which maps to a
+        // fixed screen location. Using responsive viewport height to align across
+        // all screen sizes while maintaining visual integration with the castle.
         final safePadding = MediaQuery.of(context).padding;
         final viewportHeight = MediaQuery.of(context).size.height -
             safePadding.top -
             safePadding.bottom;
+        // Position at 40% from bottom to align with castle area
         final spawnPanelBottom =
             (viewportHeight * 0.40).clamp(0.0, double.infinity).toDouble();
 
@@ -341,11 +343,11 @@ class _SpawnPanel extends StatelessWidget {
           final units = game.config.units.values
               .where((u) => u.age == age)
               .toList();
-          return Row(
+          return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               for (var i = 0; i < units.length; i++) ...[
-                if (i > 0) const SizedBox(width: 6),
+                if (i > 0) const SizedBox(height: 6),
                 _SpawnButton(game: game, def: units[i]),
               ],
             ],
@@ -367,50 +369,54 @@ class _SpawnButton extends StatelessWidget {
       valueListenable: game.gold,
       builder: (context, gold, _) {
         final affordable = gold >= def.cost;
-        return ElevatedButton(
-          onPressed: affordable ? () => game.playerBase.spawn(def.id) : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF455A64),
-            disabledBackgroundColor: const Color(0xFF263238),
-            foregroundColor: Colors.white,
-            disabledForegroundColor: Colors.white38,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            minimumSize: Size.zero,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
+        return SizedBox(
+          width: 90,
+          child: ElevatedButton(
+            onPressed: affordable ? () => game.playerBase.spawn(def.id) : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF455A64),
+              disabledBackgroundColor: const Color(0xFF263238),
+              foregroundColor: Colors.white,
+              disabledForegroundColor: Colors.white38,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                def.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _Coin(size: 12, dimmed: !affordable),
-                  const SizedBox(width: 2),
-                  Text(
-                    '${def.cost}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                      color: affordable
-                          ? const Color(0xFFFFCA28)
-                          : Colors.white38,
-                    ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  def.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
                   ),
-                ],
-              ),
-            ],
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _Coin(size: 12, dimmed: !affordable),
+                    const SizedBox(width: 2),
+                    Text(
+                      '${def.cost}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                        color: affordable
+                            ? const Color(0xFFFFCA28)
+                            : Colors.white38,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },
