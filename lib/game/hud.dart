@@ -48,76 +48,57 @@ class _Coin extends StatelessWidget {
   }
 }
 
-class Hud extends StatelessWidget {
+/// Top bar header — full-width stats row.
+/// Rendered as a Flutter widget above the game canvas in PlaySessionScreen.
+class HudTopBar extends StatelessWidget {
   final AgeOfWarGame game;
-  const Hud({required this.game, super.key});
+  const HudTopBar({required this.game, super.key});
 
   @override
   Widget build(BuildContext context) {
-    // While the game is still loading config, show a minimal placeholder so
-    // the HUD doesn't crash trying to read game.config.
     return ValueListenableBuilder<GameState>(
       valueListenable: game.state,
       builder: (context, state, _) {
         if (state == GameState.loading) {
-          return const _LoadingHud();
+          return Container(
+            height: 40,
+            color: Colors.black.withValues(alpha: 0.55),
+            child: const Center(
+              child: Text(
+                'Loading…',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+            ),
+          );
         }
-
-        // Spawn panel positioned to align with SpawnPanelComponent in game world.
-        // The component renders at world coords (180, 490), which maps to a
-        // fixed screen location. Using responsive viewport height to align across
-        // all screen sizes while maintaining visual integration with the castle.
-        final safePadding = MediaQuery.of(context).padding;
-        final viewportHeight = MediaQuery.of(context).size.height -
-            safePadding.top -
-            safePadding.bottom;
-        // Position at 40% from bottom to align with castle area
-        final spawnPanelBottom =
-            (viewportHeight * 0.40).clamp(0.0, double.infinity).toDouble();
-
-        return SafeArea(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: _TopBar(game: game),
-              ),
-              // Spawn buttons floated above the player castle's roof so the
-              // bottom of the battlefield (grass strip + castle silhouette)
-              // stays visible. Position scales responsively: 27.5% of viewport
-              // height ensures proper spacing across all screen sizes.
-              // The back-to-level-select affordance lives in the surrounding
-              // PlaySessionScreen, not here, so we don't double it up.
-              Positioned(
-                bottom: spawnPanelBottom,
-                left: 12,
-                child: _SpawnPanel(game: game),
-              ),
-              // Game-over UI lives in the separate 'gameOver' overlay
-              // (registered in lib/play_session/game_widget.dart), not here.
-            ],
-          ),
-        );
+        return _TopBar(game: game);
       },
     );
   }
 }
 
-// ---------- Loading ----------
-
-class _LoadingHud extends StatelessWidget {
-  const _LoadingHud();
+/// Left sidebar — spawn buttons + age-up.
+/// Rendered as a Flutter widget left of the game canvas in PlaySessionScreen.
+class HudSpawnSidebar extends StatelessWidget {
+  final AgeOfWarGame game;
+  const HudSpawnSidebar({required this.game, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Loading…',
-        style: TextStyle(color: Colors.white70, fontSize: 18),
-      ),
+    return ValueListenableBuilder<GameState>(
+      valueListenable: game.state,
+      builder: (context, state, _) {
+        if (state == GameState.loading) {
+          return const SizedBox.shrink();
+        }
+        return Container(
+          color: const Color(0xFF0F1722),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          child: Center(
+            child: _SpawnPanel(game: game),
+          ),
+        );
+      },
     );
   }
 }

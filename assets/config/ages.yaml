@@ -53,8 +53,8 @@ game:
   world_height_px: 600
 
   # Base positions in world coordinates
-  player_base_x: 100
-  enemy_base_x: 1100
+  player_base_x: 200
+  enemy_base_x: 1000
 
   # Ground line (y coordinate where units walk)
   ground_y: 480

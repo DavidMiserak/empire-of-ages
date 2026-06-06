@@ -11,6 +11,8 @@ import 'package:provider/provider.dart';
 
 import '../audio/audio_controller.dart';
 import '../audio/sounds.dart';
+import '../game/age_of_war_game.dart';
+import '../game/hud.dart';
 import '../game_internals/level_state.dart';
 import '../game_internals/score.dart';
 import '../level_selection/levels.dart';
@@ -40,15 +42,36 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
 
   static const _preCelebrationDuration = Duration(milliseconds: 500);
 
+  // Width of the left spawn sidebar in dp. Tuned to fit the 90dp-wide spawn
+  // buttons plus padding.
+  static const _sidebarWidth = 120.0;
+
   bool _duringCelebration = false;
 
   late DateTime _startOfPlay;
+
+  // One game instance per mount. Owned here (not inside GameWidget) so the
+  // HUD widgets (HudTopBar, HudSpawnSidebar) can share the same instance and
+  // render as proper Flutter widgets in the layout — not as overlays floating
+  // over a full-bleed game canvas.
+  late final AgeOfWarGame _game = AgeOfWarGame();
 
   @override
   void initState() {
     super.initState();
 
     _startOfPlay = DateTime.now();
+  }
+
+  @override
+  void dispose() {
+    _game.gold.dispose();
+    _game.currentAge.dispose();
+    _game.cumulativeGoldEarned.dispose();
+    _game.playerBaseHp.dispose();
+    _game.enemyBaseHp.dispose();
+    _game.state.dispose();
+    super.dispose();
   }
 
   @override
@@ -70,20 +93,38 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
         ignoring: _duringCelebration,
         child: Scaffold(
           backgroundColor: palette.backgroundPlaySession,
-          // The stack is how you layer widgets on top of each other.
-          // Here, it is used to overlay the winning confetti animation on top
-          // of the game.
           body: Stack(
             children: [
-              // Empire of Ages — full-bleed game; Toolkit settings + back
-              // controls float on top via Positioned widgets so the FlameGame
-              // canvas (and the HUD overlay it hosts) gets every available
-              // pixel. T6+ swapped this from the Toolkit's slider-puzzle
-              // layout where a 1/3-height GameWidget made sense.
-              const Positioned.fill(child: GameWidget()),
+              // Main layout: top bar full-width, then a row with the spawn
+              // sidebar on the left and the game canvas filling the rest.
+              // The game canvas does NOT render behind the sidebar — they
+              // are siblings in the layout, not stacked.
+              SafeArea(
+                child: Column(
+                  children: [
+                    HudTopBar(game: _game),
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(
+                            width: _sidebarWidth,
+                            child: HudSpawnSidebar(game: _game),
+                          ),
+                          Expanded(
+                            child: GameWidget(game: _game),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Back-to-level-select button floats over the bottom-left corner
+              // of the game canvas.
               Positioned(
                 bottom: 8,
-                left: 8,
+                left: _sidebarWidth + 8,
                 child: SafeArea(
                   child: IconButton(
                     onPressed: () => GoRouter.of(context).go('/play'),
@@ -95,8 +136,7 @@ class _PlaySessionScreenState extends State<PlaySessionScreen> {
                   ),
                 ),
               ),
-              // This is the confetti animation that is overlaid on top of the
-              // game when the player wins.
+              // Winning confetti overlay.
               SizedBox.expand(
                 child: Visibility(
                   visible: _duringCelebration,
