@@ -192,12 +192,61 @@ class AgeOfWarGame extends FlameGame {
     final tilemap = await images.load('tiny_swords/terrain/tilemap.png');
     final sheet = SpriteSheet(image: tilemap, srcSize: Vector2.all(tilePx));
     // Tile coordinates (row, col) per SpriteSheet API.
+    //   (0..1, 0..1) — 2×2 top-down grass patch (one complete grass clump
+    //     with tuft borders on all four sides). Used as scattered decoration
+    //     over the solid green field, not as a tileable fill.
     //   (2, 6) — grass-capped side-view surface tile (top of the right
     //     cluster's grass section), what feet plant on.
     //   (5, 6) — pure stone wall tile (bottom of the stone cluster). Rows
     //     3-4 still carry grass trim, so row 5 is the first clean stone.
+    final grassPatchTopLeft = sheet.getSprite(0, 0);
+    final grassPatchTopRight = sheet.getSprite(0, 1);
+    final grassPatchBottomLeft = sheet.getSprite(1, 0);
+    final grassPatchBottomRight = sheet.getSprite(1, 1);
     final grassTile = sheet.getSprite(2, 6);
     final stoneTile = sheet.getSprite(5, 6);
+
+    // Decorative grass patches: scattered 2×2 grass clumps over the solid
+    // green field. Fixed positions (not random) so the layout is consistent
+    // across runs and balances visual weight across the battlefield. Each
+    // patch is 128×128px. Positions are top-left corners of the 2×2 block.
+    const grassPatchPositions = <(double, double)>[
+      (60, 40),
+      (320, 180),
+      (560, 80),
+      (760, 260),
+      (980, 120),
+      (200, 300),
+      (1040, 320),
+      (440, 350),
+    ];
+    final patchSize = Vector2.all(tilePx);
+    for (final (px, py) in grassPatchPositions) {
+      world.add(SpriteComponent(
+        sprite: grassPatchTopLeft,
+        size: patchSize,
+        position: Vector2(px, py),
+        priority: -15,
+      ));
+      world.add(SpriteComponent(
+        sprite: grassPatchTopRight,
+        size: patchSize,
+        position: Vector2(px + tilePx, py),
+        priority: -15,
+      ));
+      world.add(SpriteComponent(
+        sprite: grassPatchBottomLeft,
+        size: patchSize,
+        position: Vector2(px, py + tilePx),
+        priority: -15,
+      ));
+      world.add(SpriteComponent(
+        sprite: grassPatchBottomRight,
+        size: patchSize,
+        position: Vector2(px + tilePx, py + tilePx),
+        priority: -15,
+      ));
+    }
 
     final cols = (worldWidth / tilePx).ceil();
     for (var i = 0; i < cols; i++) {
