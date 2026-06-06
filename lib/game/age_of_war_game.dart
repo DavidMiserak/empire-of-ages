@@ -146,43 +146,73 @@ class AgeOfWarGame extends FlameGame {
     super.update(dt);
   }
 
-  /// Tile the Tiny Swords terrain across the battlefield. The visible grass
-  /// surface aligns with [groundY] so castles + units (anchored bottomCenter
-  /// at groundY) appear planted on the grass. The tile row is shifted up by
-  /// [grassSurfaceOffset] pixels so the grass texture (top portion of each
-  /// 64px tile) sits where feet land. An earth-colour rectangle fills below.
+  /// Tile the Tiny Swords terrain across the battlefield. The layout (top
+  /// to bottom) is:
+  ///   - Grass field background: solid grass-green fill above the surface
+  ///     row, so castles + units stand in a connected grass field instead
+  ///     of floating against dark sky.
+  ///   - Surface tile row (grass-capped): visible grass surface aligns with
+  ///     [groundY] so feet plant on the grass.
+  ///   - Stone body row (pure stone, no grass cap): gives the ground a
+  ///     thicker mound look, not a one-tile-thin strip.
+  ///   - Earth fill: dark rectangle covering anything left to the world
+  ///     bottom.
   Future<void> _buildTerrain({
     required double worldWidth,
     required double worldHeight,
     required double groundY,
   }) async {
     const tilePx = 64.0;
-    // Pixels above groundY where the tile's top edge is drawn. The Tiny
-    // Swords grass-on-stone tile has the grass texture in the upper portion
-    // of each 64px tile; offsetting up by 24px puts that grass surface at
-    // groundY, so unit/castle feet visually plant in the grass rather than
-    // floating above it.
+    // Pixels above groundY where the top tile row begins. The Tiny Swords
+    // grass-on-stone tile has its grass in the upper portion of each 64px
+    // tile; offsetting up by 24px puts that grass surface at groundY.
     const grassSurfaceOffset = 24.0;
-    final tileY = groundY - grassSurfaceOffset;
+    final topRowY = groundY - grassSurfaceOffset;
+    final secondRowY = topRowY + tilePx;
+
+    // Grass green sampled to match the Tiny Swords grass-cap tile, so the
+    // background fill and the tile row read as continuous grass.
+    const grassGreen = Color(0xFF9DBE3E);
+
+    // Grass field background: covers the whole area above the surface tile
+    // row. Priority -20 keeps it behind the tile sprites (-10) and units (0+).
+    world.add(RectangleComponent(
+      position: Vector2(0, 0),
+      size: Vector2(worldWidth, topRowY),
+      paint: Paint()..color = grassGreen,
+      priority: -20,
+    ));
 
     final tilemap = await images.load('tiny_swords/terrain/tilemap.png');
     final sheet = SpriteSheet(image: tilemap, srcSize: Vector2.all(tilePx));
-    // Right-half side-view tiles: grass cap on stone block, picked from
-    // the tilemap's lower-right cluster. (row, column) per SpriteSheet API.
-    final groundTile = sheet.getSprite(2, 6);
+    // Right-half side-view tiles. (row, column) per SpriteSheet API.
+    //   (2, 6) — grass-capped surface tile (top of the grass cluster)
+    //   (5, 6) — pure stone wall tile (bottom of the stone cluster)
+    // Picking row 5 (not 3 or 4) is important: rows 3-4 still carry grass
+    // trim from the grass cluster transition, which renders as an unwanted
+    // horizontal "stone trim" line between the surface and body rows.
+    final grassTile = sheet.getSprite(2, 6);
+    final stoneTile = sheet.getSprite(5, 6);
 
     final cols = (worldWidth / tilePx).ceil();
     for (var i = 0; i < cols; i++) {
+      // Top row: grass-capped surface tile.
       world.add(SpriteComponent(
-        sprite: groundTile,
+        sprite: grassTile,
         size: Vector2.all(tilePx),
-        position: Vector2(i * tilePx, tileY),
-        // Tiles render behind units/castles (which default to priority 0).
+        position: Vector2(i * tilePx, topRowY),
+        priority: -10,
+      ));
+      // Second row: pure stone body so the ground reads as a solid mound.
+      world.add(SpriteComponent(
+        sprite: stoneTile,
+        size: Vector2.all(tilePx),
+        position: Vector2(i * tilePx, secondRowY),
         priority: -10,
       ));
     }
-    // Earth fill for the strip below the tile row (down to world bottom).
-    final fillTop = tileY + tilePx;
+    // Earth fill for the strip below the second tile row (down to world bottom).
+    final fillTop = secondRowY + tilePx;
     if (fillTop < worldHeight) {
       world.add(RectangleComponent(
         position: Vector2(0, fillTop),
