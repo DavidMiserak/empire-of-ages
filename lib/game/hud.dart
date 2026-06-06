@@ -99,12 +99,12 @@ class _TopBar extends StatelessWidget {
           ValueListenableBuilder<int>(
             valueListenable: game.gold,
             builder: (context, gold, _) => _Stat(
-              label: '⚡',
+              icon: Icons.bolt,
               value: '$gold',
               color: const Color(0xFFFFCA28),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           // Progress toward age-up
           ValueListenableBuilder<int>(
             valueListenable: game.cumulativeGoldEarned,
@@ -113,7 +113,7 @@ class _TopBar extends StatelessWidget {
               if (next == null) return const SizedBox.shrink();
               final threshold = next.goldThresholdToAdvance ?? 0;
               return _Stat(
-                label: '▲',
+                icon: Icons.trending_up,
                 value: '$earned/$threshold',
                 color: earned >= threshold
                     ? const Color(0xFF7E57C2)
@@ -121,34 +121,33 @@ class _TopBar extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(width: 8),
-          // Age name + advance button grouped together
+          const SizedBox(width: 12),
+          // Age name styled as a chapter chip, not a stat — it's a context
+          // label, not a number.
           ValueListenableBuilder<int>(
             valueListenable: game.currentAge,
-            builder: (context, age, _) => _Stat(
-              label: '',
-              value: game.config.ages[age]?.name ?? 'Age $age',
-              color: const Color(0xFF80DEEA),
+            builder: (context, age, _) => _AgeChip(
+              name: game.config.ages[age]?.name ?? 'Age $age',
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
           _AgeUpButton(game: game),
           const Spacer(),
           // Player HP
           ValueListenableBuilder<int>(
             valueListenable: game.playerBaseHp,
             builder: (context, hp, _) => _Stat(
-              label: '🏰',
+              icon: Icons.castle,
               value: '$hp',
               color: const Color(0xFF66BB6A),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           // Enemy HP
           ValueListenableBuilder<int>(
             valueListenable: game.enemyBaseHp,
             builder: (context, hp, _) => _Stat(
-              label: '💀',
+              icon: Icons.dangerous,
               value: '$hp',
               color: const Color(0xFFEF5350),
             ),
@@ -160,28 +159,57 @@ class _TopBar extends StatelessWidget {
 }
 
 class _Stat extends StatelessWidget {
-  final String label;
+  final IconData icon;
   final String value;
   final Color color;
-  const _Stat({required this.label, required this.value, required this.color});
+  const _Stat({required this.icon, required this.value, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (label.isNotEmpty)
-          Text(label, style: const TextStyle(fontSize: 12)),
-        if (label.isNotEmpty) const SizedBox(width: 2),
+        Icon(icon, size: 18, color: color),
+        const SizedBox(width: 4),
         Text(
           value,
           style: TextStyle(
             color: color,
-            fontSize: 13,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
+            // tabular-nums keeps numbers from jittering as values change
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Age name shown as a chapter-style chip — visually distinct from the
+/// adjacent numeric stats so the eye reads it as context, not data.
+class _AgeChip extends StatelessWidget {
+  final String name;
+  const _AgeChip({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A2638),
+        border: Border.all(color: const Color(0xFF80DEEA), width: 1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        name.toUpperCase(),
+        style: const TextStyle(
+          color: Color(0xFF80DEEA),
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.5,
+        ),
+      ),
     );
   }
 }
