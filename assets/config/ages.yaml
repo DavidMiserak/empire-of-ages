@@ -16,26 +16,34 @@ ages:
     name: "Stone Age"
     # null = age 1 is the starting age; no threshold to "advance to" it
     gold_threshold_to_advance: null
-    enemy_spawn_interval_ms: 2000
+    # Slow enemy at age 1 so the player can find their feet (was 2000ms).
+    enemy_spawn_interval_ms: 5000
     enemy_spawn_decay: 0.10
-    enemy_spawn_floor_ms: 800
+    # Don't let the decay accelerate below 2s/unit at age 1.
+    enemy_spawn_floor_ms: 2000
     # Placeholders until T2 picks real assets
     bg_sprite: "bg/age1.png"
     music: "music/age1.mp3"
 
   - id: 2
     name: "Medieval"
-    gold_threshold_to_advance: 500
-    enemy_spawn_interval_ms: 1500
+    # Reachable threshold: ~12 clubman kills (25g each) or ~7 slinger kills (40g
+    # each) — match length should put the player there within 2-3 min if
+    # balance holds (was 500).
+    gold_threshold_to_advance: 300
+    # Slightly faster than age 1 so the medieval phase has more pressure.
+    enemy_spawn_interval_ms: 3500
     enemy_spawn_decay: 0.10
-    enemy_spawn_floor_ms: 800
+    enemy_spawn_floor_ms: 1500
     bg_sprite: "bg/age2.png"
     music: "music/age2.mp3"
 
 # Game-wide constants
 # Magic numbers belong here, not in code (eng-review code-quality finding #2).
 game:
-  starting_gold: 175
+  # Up from 175 — buys the player enough opening spawns (~3 clubmen + 1 slinger)
+  # to absorb the first enemy wave instead of getting steamrolled.
+  starting_gold: 400
   player_base_hp: 1000
   enemy_base_hp: 1000
 

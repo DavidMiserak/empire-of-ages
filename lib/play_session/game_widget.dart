@@ -10,6 +10,7 @@ import 'package:flame/game.dart' as flame;
 import 'package:flutter/material.dart';
 
 import '../game/age_of_war_game.dart';
+import '../game/game_over_overlay.dart';
 import '../game/hud.dart';
 
 class GameWidget extends StatefulWidget {
@@ -42,7 +43,10 @@ class _GameWidgetState extends State<GameWidget> {
       game: _game,
       overlayBuilderMap: {
         'hud': (context, game) => Hud(game: game),
+        'gameOver': (context, game) => GameOverOverlay(game: game),
       },
+      // 'hud' is active from the start; 'gameOver' is added by endMatch and
+      // removed by reset (gap C — overlays do NOT auto-clear).
       initialActiveOverlays: const ['hud'],
     );
   }

@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 
 import 'base.dart';
 import 'game_config.dart';
+import 'unit.dart';
 
 /// Which side of the battlefield a Base or Unit belongs to.
 enum Side { player, enemy }
@@ -132,11 +133,13 @@ class AgeOfWarGame extends FlameGame {
   }
 
   /// Called by [Base.takeDamage] when one Base reaches 0 HP.
-  /// T11 will swap from `debugPrint` to showing the 'gameOver' Flutter overlay
-  /// keyed by `loser`. For now the simulation just freezes (per D6).
+  /// Sets state to `over` (D6 freeze) and shows the 'gameOver' overlay
+  /// (registered in lib/play_session/game_widget.dart). [reset] is the
+  /// inverse — it removes the overlay (explicitly, gap C) and resets state.
   void endMatch({required Side loser}) {
     if (state.value == GameState.over) return; // idempotent
     state.value = GameState.over;
+    overlays.add('gameOver');
     debugPrint(
       'Match over: ${loser == Side.player ? "DEFEAT" : "VICTORY"} '
       '(player HP: ${playerBaseHp.value}, enemy HP: ${enemyBaseHp.value})',
@@ -155,10 +158,21 @@ class AgeOfWarGame extends FlameGame {
     return true;
   }
 
-  /// "Play Again" entry point. T11 will fully wire this.
+  /// "Play Again" entry point. Restores starting state without remounting the
+  /// FlameGame instance.
   void reset() {
     // gap C: game.reset() does NOT auto-remove overlays. Be explicit.
     overlays.remove('gameOver');
+
+    // Despawn every Unit. iterate-via-toList to avoid mutation-during-iteration.
+    final units = world.children.whereType<Unit>().toList();
+    for (final u in units) {
+      u.removeFromParent();
+    }
+
+    // Reset both Bases (HP back to max, enemy spawn timer cleared).
+    playerBase.reset();
+    enemyBase.reset();
 
     final c = config.constants;
     gold.value = c.startingGold;
@@ -167,6 +181,5 @@ class AgeOfWarGame extends FlameGame {
     playerBaseHp.value = c.playerBaseHp;
     enemyBaseHp.value = c.enemyBaseHp;
     state.value = GameState.playing;
-    // T11 will also despawn all units and reset both Bases.
   }
 }

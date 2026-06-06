@@ -142,4 +142,16 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
     _currentSpawnIntervalSec =
         (newMs / 1000.0).clamp(age.enemySpawnFloorMs / 1000.0, double.infinity);
   }
+
+  /// Reset HP to max and clear enemy spawn state. Called from
+  /// [AgeOfWarGame.reset] on Play Again.
+  void reset() {
+    hp = maxHp;
+    _elapsedMatchSeconds = 0.0;
+    _timeSinceLastSpawn = 0.0;
+    if (side == Side.enemy) {
+      _currentSpawnIntervalSec =
+          game.config.ages[game.currentAge.value]!.enemySpawnIntervalMs / 1000.0;
+    }
+  }
 }

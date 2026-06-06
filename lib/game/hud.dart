@@ -49,8 +49,8 @@ class Hud extends StatelessWidget {
               bottom: 0,
               child: _BottomBar(game: game),
             ),
-            if (state == GameState.over)
-              const Positioned.fill(child: _OverBanner()),
+            // Game-over UI lives in the separate 'gameOver' overlay
+            // (registered in lib/play_session/game_widget.dart), not here.
           ],
         );
       },
@@ -306,26 +306,3 @@ class _SpawnButton extends StatelessWidget {
   }
 }
 
-// ---------- End-game banner (T11 will replace with a real overlay) ----------
-
-class _OverBanner extends StatelessWidget {
-  const _OverBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black.withValues(alpha: 0.65),
-      child: const Center(
-        child: Text(
-          'MATCH OVER',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 36,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 2,
-          ),
-        ),
-      ),
-    );
-  }
-}
