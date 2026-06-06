@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 
 import 'base.dart';
 import 'game_config.dart';
+import 'sound_throttle.dart';
 import 'unit.dart';
 
 /// Which side of the battlefield a Base or Unit belongs to.
@@ -51,8 +52,18 @@ class AgeOfWarGame extends FlameGame {
   final ValueNotifier<GameState> state =
       ValueNotifier<GameState>(GameState.loading);
 
-  /// SFX paths to pre-warm before first play (gap B). T13 populates.
-  static const List<String> _sfxToPrewarm = <String>[];
+  /// SoundThrottle for decision D8 (80ms throttle on identical SFX).
+  late final SoundThrottle _soundThrottle = SoundThrottle();
+
+  /// SFX paths to pre-warm before first play (gap B, T13).
+  /// Using Toolkit's built-in SFX (assets/sfx/) which work with FlameAudio.
+  static const List<String> _sfxToPrewarm = [
+    'p1.mp3',    // spawn
+    'hash1.mp3', // hit impact
+    'kill.mp3',  // unit death (scrap metal)
+    'gold.mp3',  // gold earned (new item chime)
+    'ageup.mp3', // age advance (legendary upgrade)
+  ];
 
   @override
   Color backgroundColor() => const Color(0xFF1a2638); // dusk sky
@@ -77,16 +88,13 @@ class AgeOfWarGame extends FlameGame {
     camera.viewfinder.position =
         Vector2(c.worldWidthPx / 2, c.worldHeightPx / 2);
 
-    // gap B — Pre-warm the FlameAudio cache to kill 100–300ms first-play
-    // latency on Android. No-op while the list is empty. Wrapped so a missing
-    // asset doesn't kill the game — log + continue (eng-review failure-modes
-    // critical gap: audio-asset-missing on onLoad).
-    if (_sfxToPrewarm.isNotEmpty) {
-      try {
-        await FlameAudio.audioCache.loadAll(_sfxToPrewarm);
-      } catch (e) {
-        debugPrint('Audio pre-warm failed (continuing without SFX): $e');
-      }
+    // gap B — Configure FlameAudio to load from assets/sfx/ (not the default
+    // assets/audio/ prefix that audioplayers uses), then pre-warm the cache.
+    FlameAudio.audioCache = AudioCache(prefix: 'assets/sfx/');
+    try {
+      await FlameAudio.audioCache.loadAll(_sfxToPrewarm);
+    } catch (e) {
+      debugPrint('Audio pre-warm failed (continuing without SFX): $e');
     }
 
     // Initialize game state from config constants.
@@ -146,6 +154,19 @@ class AgeOfWarGame extends FlameGame {
     );
   }
 
+  /// Play an SFX, throttled by decision D8 (80ms). Returns true if the sound
+  /// was allowed (not throttled), false if it was dropped.
+  bool playSound(String soundKey) {
+    if (!_soundThrottle.allow(soundKey)) return false;
+    try {
+      FlameAudio.play('$soundKey.mp3');
+      return true;
+    } catch (e) {
+      debugPrint('SFX play failed ($soundKey): $e');
+      return false;
+    }
+  }
+
   /// Advance to the next age. T10 will add the flash + sound + sprite swap.
   /// Returns true if advanced, false if already at max age or cost not met.
   bool ageUp() {
@@ -155,6 +176,7 @@ class AgeOfWarGame extends FlameGame {
     final threshold = nextAge.goldThresholdToAdvance ?? 0;
     if (cumulativeGoldEarned.value < threshold) return false;
     currentAge.value = next;
+    playSound('ageup');
     return true;
   }
 
@@ -173,6 +195,9 @@ class AgeOfWarGame extends FlameGame {
     // Reset both Bases (HP back to max, enemy spawn timer cleared).
     playerBase.reset();
     enemyBase.reset();
+
+    // Reset sound throttle state.
+    _soundThrottle.reset();
 
     final c = config.constants;
     gold.value = c.startingGold;

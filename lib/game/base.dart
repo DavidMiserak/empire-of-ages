@@ -102,6 +102,7 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
     if (hp == 0) return;
     hp = (hp - amount).clamp(0, maxHp);
     _flashRemaining = _flashDuration;
+    game.playSound('hash1'); // hit impact sound (throttled by D8)
     if (side == Side.player) {
       game.playerBaseHp.value = hp;
     } else {
@@ -128,6 +129,7 @@ class Base extends PositionComponent with HasGameReference<AgeOfWarGame> {
     final spawnPos = Vector2(position.x + outsideOffset, position.y);
 
     game.world.add(Unit(def: def, side: side, position: spawnPos));
+    game.playSound('p1'); // spawn poof (throttled by D8)
     return true;
   }
 

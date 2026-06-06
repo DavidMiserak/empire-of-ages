@@ -26,17 +26,30 @@ class MainMenuScreen extends StatelessWidget {
       backgroundColor: palette.backgroundMain,
       body: ResponsiveScreen(
         squarishMainArea: Center(
-          child: Transform.rotate(
-            angle: -0.1,
-            child: const Text(
-              'Flutter Game Template!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: 'Permanent Marker',
-                fontSize: 55,
-                height: 1,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Empire',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Permanent Marker',
+                  fontSize: 64,
+                  height: 1,
+                  color: palette.pen,
+                ),
               ),
-            ),
+              Text(
+                'of Ages',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Permanent Marker',
+                  fontSize: 48,
+                  height: 1,
+                  color: palette.pen,
+                ),
+              ),
+            ],
           ),
         ),
         rectangularMenuArea: Column(
@@ -57,18 +70,21 @@ class MainMenuScreen extends StatelessWidget {
             _gap,
             Padding(
               padding: const EdgeInsets.only(top: 32),
+              // Music toggle — uses musicOn so it stays in sync with the
+              // Settings screen's Music toggle (same ValueNotifier).
               child: ValueListenableBuilder<bool>(
-                valueListenable: settingsController.audioOn,
-                builder: (context, audioOn, child) {
+                valueListenable: settingsController.musicOn,
+                builder: (context, musicOn, child) {
                   return IconButton(
-                    onPressed: settingsController.toggleAudioOn,
-                    icon: Icon(audioOn ? Icons.volume_up : Icons.volume_off),
+                    onPressed: settingsController.toggleMusicOn,
+                    icon: Icon(musicOn ? Icons.music_note : Icons.music_off),
+                    tooltip: musicOn ? 'Music on' : 'Music off',
                   );
                 },
               ),
             ),
             _gap,
-            const Text('Music by Mr Smith'),
+            const Text('Music by Joel Steudler'),
             _gap,
           ],
         ),

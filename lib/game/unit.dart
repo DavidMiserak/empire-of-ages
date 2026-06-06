@@ -179,6 +179,8 @@ class Unit extends PositionComponent with HasGameReference<AgeOfWarGame> {
       final killerBase =
           killer.side == Side.player ? game.playerBase : game.enemyBase;
       killerBase.grantGold(def.goldReward);
+      game.playSound('kill');
+      game.playSound('gold');
     }
     removeFromParent();
   }

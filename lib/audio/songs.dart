@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 const Set<Song> songs = {
-  // Filenames with whitespace break package:audioplayers on iOS
-  // (as of February 2022), so we use no whitespace.
-  Song('Mr_Smith-Azul.mp3', 'Azul', artist: 'Mr Smith'),
-  Song('Mr_Smith-Sonorus.mp3', 'Sonorus', artist: 'Mr Smith'),
-  Song('Mr_Smith-Sunday_Solitude.mp3', 'SundaySolitude', artist: 'Mr Smith'),
+  // 16-Bit Fantasy Action Music Pack by Joel Steudler (Humble Bundle)
+  // Note: filenames with whitespace break package:audioplayers on iOS,
+  // but underscored filenames work fine.
+  Song('Menu_-_Noble_Kingdom.ogg', 'Noble Kingdom', artist: 'Joel Steudler'),
+  Song('Action_-_Knightly_Fighting.ogg', 'Knightly Fighting', artist: 'Joel Steudler'),
+  Song('Action_-_Surge_Forward.ogg', 'Surge Forward', artist: 'Joel Steudler'),
+  Song('Action_-_Challenge_Fate.ogg', 'Challenge Fate', artist: 'Joel Steudler'),
 };
 
 class Song {
