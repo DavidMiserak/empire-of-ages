@@ -61,14 +61,14 @@ class Hud extends StatelessWidget {
         }
 
         // Responsive spawn panel positioning (DESIGN.md: Responsive Multiplatform Spec).
-        // Formula: bottom = max(safeAreaBottom + 12, viewportHeight × 0.275)
-        // Scales from 384dp mobile (~165dp) to 1200dp+ desktop without hardcoding.
+        // Formula: bottom = viewportHeight × 0.40 (40% of viewport from bottom)
+        // Positions spawn panel to show ground sprites on all screen sizes.
         final safePadding = MediaQuery.of(context).padding;
         final viewportHeight = MediaQuery.of(context).size.height -
             safePadding.top -
             safePadding.bottom;
         final spawnPanelBottom =
-            (viewportHeight * 0.275).clamp(0.0, double.infinity).toDouble();
+            (viewportHeight * 0.40).clamp(0.0, double.infinity).toDouble();
 
         return SafeArea(
           child: Stack(

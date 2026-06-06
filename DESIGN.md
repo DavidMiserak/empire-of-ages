@@ -134,13 +134,13 @@ The HUD consists of two layers: **top bar** (fixed) and **spawn panel** (floated
     ```text
     spawnPanelBottom = max(
       safeAreaBottom + 12,              // Minimum: 12px above safe area
-      viewportHeight × 0.275             // Or: 27.5% up from viewport bottom
+      viewportHeight × 0.40              // Or: 40% up from viewport bottom
     )
     ```
 
     This ensures:
-    - On a 384dp tall screen: ~165dp (original)
-    - On a 600dp tall screen: ~250dp
+    - On a 384dp tall screen: ~154dp
+    - On a 600dp tall screen: ~240dp
     - On a 800dp tall screen: ~320dp
     - Scales proportionally, never crashes into safe area keyboard
 
