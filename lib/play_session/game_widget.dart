@@ -4,14 +4,13 @@
 //
 // Empire of Ages: this widget originally hosted the Casual Games Toolkit's
 // slider puzzle. T6 swapped it for a Flame GameWidget hosting AgeOfWarGame.
-// The surrounding PlaySessionScreen scaffolding (settings button, back button,
-// Toolkit Level/Score/Confetti machinery) is preserved for now and will be
-// integrated with the real win/lose flow in T11.
+// T9 added the 'hud' overlay via overlayBuilderMap + initialActiveOverlays.
 
 import 'package:flame/game.dart' as flame;
 import 'package:flutter/material.dart';
 
 import '../game/age_of_war_game.dart';
+import '../game/hud.dart';
 
 class GameWidget extends StatefulWidget {
   const GameWidget({super.key});
@@ -39,6 +38,12 @@ class _GameWidgetState extends State<GameWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return flame.GameWidget(game: _game);
+    return flame.GameWidget<AgeOfWarGame>(
+      game: _game,
+      overlayBuilderMap: {
+        'hud': (context, game) => Hud(game: game),
+      },
+      initialActiveOverlays: const ['hud'],
+    );
   }
 }
