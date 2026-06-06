@@ -1,40 +1,59 @@
 // Copyright 2022, the Flutter project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// Empire of Ages: this smoke test was inherited from the Casual Games Toolkit
+// template (T1) and originally verified the toolkit's slider-puzzle level.
+// T6 replaced the level with a FlameGame, so the test now verifies the
+// Toolkit's surrounding chrome (menus, settings, level selection, navigation)
+// boots and that selecting Level #1 mounts the play session without throwing.
 
 import 'package:empire_of_ages/main.dart';
+import 'package:empire_of_ages/play_session/game_widget.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('smoke test', (tester) async {
-    // Build our game and trigger a frame.
+  testWidgets('toolkit chrome + game widget mounts', (tester) async {
     await tester.pumpWidget(MyApp());
 
-    // Verify that the 'Play' button is shown.
+    // Main menu shows Play and Settings buttons.
     expect(find.text('Play'), findsOneWidget);
-
-    // Verify that the 'Settings' button is shown.
     expect(find.text('Settings'), findsOneWidget);
 
-    // Go to 'Settings'.
+    // Settings is reachable.
     await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
     expect(find.text('Music'), findsOneWidget);
 
-    // Go back to main menu.
     await tester.tap(find.text('Back'));
     await tester.pumpAndSettle();
 
-    // Tap 'Play'.
+    // Play -> level selection.
     await tester.tap(find.text('Play'));
     await tester.pumpAndSettle();
     expect(find.text('Select level'), findsOneWidget);
 
-    // Tap level 1.
+    // Selecting a level lands on the play session. We pump a few frames to
+    // let go_router's route transition complete, but stop short of
+    // pumpAndSettle because FlameGame's render loop never quiesces.
     await tester.tap(find.text('Level #1'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
 
-    // Find the first level's "tutorial" text.
-    expect(find.text('Drag the slider to 5% or above!'), findsOneWidget);
+    // Use byWidgetPredicate rather than byType because flame's GameWidget is
+    // a parameterized type (GameWidget<Game>) and Type identity matching
+    // through prefixed imports is unreliable for generics.
+    expect(
+      find.byWidgetPredicate((w) => w is GameWidget),
+      findsOneWidget,
+      reason: 'empire_of_ages GameWidget should be mounted on play session',
+    );
+
+    // The Toolkit's play session chrome (Back button) confirms navigation
+    // actually happened. We allow >=1 because go_router may keep the
+    // level-selection screen in the tree during the transition animation.
+    expect(find.text('Back'), findsAtLeastNWidgets(1));
   });
 }

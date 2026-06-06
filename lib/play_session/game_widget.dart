@@ -1,39 +1,44 @@
 // Copyright 2022, the Flutter project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// Empire of Ages: this widget originally hosted the Casual Games Toolkit's
+// slider puzzle. T6 swapped it for a Flame GameWidget hosting AgeOfWarGame.
+// The surrounding PlaySessionScreen scaffolding (settings button, back button,
+// Toolkit Level/Score/Confetti machinery) is preserved for now and will be
+// integrated with the real win/lose flow in T11.
 
+import 'package:flame/game.dart' as flame;
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-import '../audio/audio_controller.dart';
-import '../audio/sounds.dart';
-import '../game_internals/level_state.dart';
-import '../level_selection/levels.dart';
+import '../game/age_of_war_game.dart';
 
-/// This widget defines the game UI itself, without things like the settings
-/// button or the back button.
-class GameWidget extends StatelessWidget {
+class GameWidget extends StatefulWidget {
   const GameWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final level = context.watch<GameLevel>();
-    final levelState = context.watch<LevelState>();
+  State<GameWidget> createState() => _GameWidgetState();
+}
 
-    return Column(
-      children: [
-        Text('Drag the slider to ${level.difficulty}% or above!'),
-        Slider(
-          label: 'Level Progress',
-          autofocus: true,
-          value: levelState.progress / 100,
-          onChanged: (value) => levelState.setProgress((value * 100).round()),
-          onChangeEnd: (value) {
-            context.read<AudioController>().playSfx(SfxType.wssh);
-            levelState.evaluate();
-          },
-        ),
-      ],
-    );
+class _GameWidgetState extends State<GameWidget> {
+  // One game instance per mount. Holding it on State avoids re-loading the
+  // YAML config every Flutter rebuild — onLoad runs once when the GameWidget
+  // first attaches.
+  late final AgeOfWarGame _game = AgeOfWarGame();
+
+  @override
+  void dispose() {
+    _game.gold.dispose();
+    _game.currentAge.dispose();
+    _game.cumulativeGoldEarned.dispose();
+    _game.playerBaseHp.dispose();
+    _game.enemyBaseHp.dispose();
+    _game.state.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return flame.GameWidget(game: _game);
   }
 }
