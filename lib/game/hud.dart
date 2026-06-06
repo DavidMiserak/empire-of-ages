@@ -282,9 +282,12 @@ class _BottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
-        border: const Border(
+      decoration: const BoxDecoration(
+        // Opaque dark bar so the world's brown ground stripe (which extends
+        // the full width below the bases) doesn't bleed through and create
+        // the thin "ground peeking above the bar" artefact at the top edge.
+        color: Color(0xFF0F1722),
+        border: Border(
           top: BorderSide(color: Color(0xFF445566), width: 1),
         ),
       ),
