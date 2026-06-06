@@ -31,7 +31,7 @@ class LevelSelectionScreen extends StatelessWidget {
               padding: EdgeInsets.all(16),
               child: Center(
                 child: Text(
-                  'Select level',
+                  'Choose your battlefield',
                   style: TextStyle(
                     fontFamily: 'Permanent Marker',
                     fontSize: 30,
@@ -39,25 +39,15 @@ class LevelSelectionScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: 24),
             Expanded(
               child: ListView(
                 children: [
                   for (final level in gameLevels)
-                    ListTile(
-                      enabled:
-                          playerProgress.highestLevelReached >=
+                    _LevelTile(
+                      level: level,
+                      unlocked: playerProgress.highestLevelReached >=
                           level.number - 1,
-                      onTap: () {
-                        final audioController = context.read<AudioController>();
-                        audioController.playSfx(SfxType.buttonTap);
-
-                        GoRouter.of(
-                          context,
-                        ).go('/play/session/${level.number}');
-                      },
-                      leading: Text(level.number.toString()),
-                      title: Text('Level #${level.number}'),
                     ),
                 ],
               ),
@@ -70,6 +60,48 @@ class LevelSelectionScreen extends StatelessWidget {
           },
           child: const Text('Back'),
         ),
+      ),
+    );
+  }
+}
+
+class _LevelTile extends StatelessWidget {
+  final GameLevel level;
+  final bool unlocked;
+
+  const _LevelTile({required this.level, required this.unlocked});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      enabled: unlocked,
+      onTap: unlocked
+          ? () {
+              final audioController = context.read<AudioController>();
+              audioController.playSfx(SfxType.buttonTap);
+              GoRouter.of(context).go('/play/session/${level.number}');
+            }
+          : null,
+      leading: CircleAvatar(
+        backgroundColor: unlocked
+            ? const Color(0xFF7E57C2)
+            : Colors.black26,
+        foregroundColor: Colors.white,
+        child: unlocked
+            ? Text(
+                '${level.number}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              )
+            : const Icon(Icons.lock, size: 18),
+      ),
+      title: Text(
+        'Battle ${level.number}',
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+      ),
+      subtitle: Text(
+        unlocked
+            ? 'Tap to deploy'
+            : 'Win Battle ${level.number - 1} to unlock',
       ),
     );
   }
