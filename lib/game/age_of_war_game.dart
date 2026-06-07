@@ -175,24 +175,9 @@ class AgeOfWarGame extends FlameGame {
     final topRowY = groundY - grassSurfaceOffset;
     final secondRowY = topRowY + tilePx;
 
-    // Grass green sampled to match the Tiny Swords grass-cap tile, so the
-    // background fill and the tile row read as continuous grass.
-    //
-    // Note: the Tiny Swords tilemap grass cells (e.g. rows 0-1, cols 0-1)
-    // each carry tuft borders on all four sides — they're designed as
-    // discrete grass patches, not as a tileable field fill. Tiling them
-    // produced a visible grid of tuft borders. A solid grass-green fill
-    // reads as a clean continuous field instead.
-    const grassGreen = Color(0xFF9DBE3E);
 
-    // Grass field background: covers the whole area above the surface tile
-    // row. Priority -20 keeps it behind tile sprites (-10) and units (0+).
-    world.add(RectangleComponent(
-      position: Vector2(0, 0),
-      size: Vector2(worldWidth, topRowY),
-      paint: Paint()..color = grassGreen,
-      priority: -20,
-    ));
+    // Landscape background now replaces the grass fill (priority -25).
+    // Fall back to grass fill if no landscape is loaded.
 
     final tilemap = await images.load('tiny_swords/terrain/tilemap.png');
     final sheet = SpriteSheet(image: tilemap, srcSize: Vector2.all(tilePx));
@@ -204,56 +189,7 @@ class AgeOfWarGame extends FlameGame {
     final grassTile = sheet.getSprite(2, 6);
     final stoneTile = sheet.getSprite(5, 6);
 
-    // Decorative bushes: scattered Tiny Swords bush sprites for foliage
-    // detail over the solid green field. Each source sheet is 1024×128
-    // with 8 bush variants (128×128 each). We mix two sheets: bushes_1
-    // (round bushes) and bushes_4 (small branchy bushes). Bushes render
-    // at 64×64 (half scale) so they read as smaller-than-castle foliage.
-    // Positions are anchored bottom-center on the bush's y coord so they
-    // sit on a clear ground line, not float. y values stay within the
-    // grass field area (above the surface tile row at topRowY = ~456).
-    // Priority -12 puts them in front of the grass background (-20) but
-    // behind the surface tile row (-10).
-    const bushSrcPx = 128.0;
-    const bushDrawPx = 64.0;
-    final bushSheet1Image =
-        await images.load('tiny_swords/terrain/decorations/bushes_1.png');
-    final bushSheet4Image =
-        await images.load('tiny_swords/terrain/decorations/bushes_4.png');
-    final bushSheet1 = SpriteSheet(
-      image: bushSheet1Image,
-      srcSize: Vector2.all(bushSrcPx),
-    );
-    final bushSheet4 = SpriteSheet(
-      image: bushSheet4Image,
-      srcSize: Vector2.all(bushSrcPx),
-    );
-
-    // (x, y, sheet, variant) — bottom-center anchor at (x, y); variant is
-    // the column in the 1-row, 8-column bush sheet (0..7).
-    final bushPlacements = <(double, double, SpriteSheet, int)>[
-      (90, 220, bushSheet1, 0),
-      (260, 350, bushSheet4, 2),
-      (380, 180, bushSheet1, 3),
-      (530, 410, bushSheet4, 5),
-      (650, 240, bushSheet1, 1),
-      (820, 380, bushSheet4, 7),
-      (910, 200, bushSheet1, 4),
-      (1100, 340, bushSheet4, 1),
-      (140, 410, bushSheet1, 6),
-      (1010, 430, bushSheet4, 4),
-    ];
-
-    for (final (bx, by, sheetForBush, variant) in bushPlacements) {
-      world.add(SpriteComponent(
-        sprite: sheetForBush.getSprite(0, variant),
-        size: Vector2.all(bushDrawPx),
-        position: Vector2(bx, by),
-        anchor: Anchor.bottomCenter,
-        priority: -12,
-      ));
-    }
-
+    // Foliage now comes from landscape themes instead of hardcoded bushes.
     final cols = (worldWidth / tilePx).ceil();
     for (var i = 0; i < cols; i++) {
       // Top row: grass-capped surface tile.
