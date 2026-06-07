@@ -39,6 +39,11 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/landscapes/mountains/
+    - assets/images/landscapes/hills/
+    - assets/images/landscapes/caves/
+    - assets/images/landscapes/clouds/
+    - assets/images/landscapes/sky/
     - assets/images/tiny_swords/buildings/
     - assets/images/tiny_swords/resources/
     - assets/images/tiny_swords/terrain/

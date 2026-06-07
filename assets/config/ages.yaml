@@ -21,8 +21,8 @@ ages:
     enemy_spawn_decay: 0.10
     # Don't let the decay accelerate below 2s/unit at age 1.
     enemy_spawn_floor_ms: 2000
-    # Placeholders until T2 picks real assets
-    bg_sprite: "bg/age1.png"
+    # Landscape theme from construction set (hills background)
+    bg_sprite: "hills"
     music: "music/age1.mp3"
 
   - id: 2
@@ -35,7 +35,8 @@ ages:
     enemy_spawn_interval_ms: 3500
     enemy_spawn_decay: 0.10
     enemy_spawn_floor_ms: 1500
-    bg_sprite: "bg/age2.png"
+    # Landscape theme: mountains for more dramatic scenery
+    bg_sprite: "mountains"
     music: "music/age2.mp3"
 
 # Game-wide constants

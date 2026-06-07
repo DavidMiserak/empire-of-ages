@@ -19,6 +19,7 @@ import 'package:flame/sprite.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 
+import 'background.dart';
 import 'base.dart';
 import 'game_config.dart';
 import 'sound_throttle.dart';
@@ -109,6 +110,10 @@ class AgeOfWarGame extends FlameGame {
     currentAge.value = 1;
     playerBaseHp.value = c.playerBaseHp;
     enemyBaseHp.value = c.enemyBaseHp;
+
+    // Add background based on starting age (theme from ages.yaml bgSprite field).
+    debugPrint('Loading background for age: ${currentAge.value}');
+    _addBackgroundForAge(currentAge.value);
 
     // Battlefield ground: tile Tiny Swords' side-view grass + stone tiles
     // along the ground line, with a darker earth fill underneath for any
@@ -323,6 +328,42 @@ class AgeOfWarGame extends FlameGame {
     currentAge.value = next;
     playSound('ageup');
     return true;
+  }
+
+  /// Map bgSprite names (from ages.yaml) to LandscapeTheme and parallax layers.
+  /// bgSprite format: "theme_name" (e.g., "mountains", "caves", "sky").
+  /// Returns theme + layer indices, or null if not found.
+  ({LandscapeTheme theme, List<int> layers})? _getBackgroundTheme(String bgSprite) {
+    return switch (bgSprite) {
+      'mountains' => (theme: LandscapeTheme.mountains, layers: [1, 3, 5]),
+      'hills' => (theme: LandscapeTheme.hills, layers: [1]),
+      'caves' => (theme: LandscapeTheme.caves, layers: [2, 4, 6]),
+      'clouds' => (theme: LandscapeTheme.clouds, layers: [2, 5, 8]),
+      'sky' => (theme: LandscapeTheme.sky, layers: [1, 5, 10]),
+      _ => null,
+    };
+  }
+
+  /// Add background layers for the given age based on its bgSprite.
+  void _addBackgroundForAge(int ageId) {
+    final ageDef = config.ages[ageId];
+    if (ageDef == null) {
+      debugPrint('Age $ageId not found in config');
+      return;
+    }
+
+    debugPrint('Age $ageId bgSprite: ${ageDef.bgSprite}');
+    final bg = _getBackgroundTheme(ageDef.bgSprite);
+    if (bg == null) {
+      debugPrint('No background theme mapping for: ${ageDef.bgSprite}');
+      return;
+    }
+
+    debugPrint('Adding background system: theme=${bg.theme}, layers=${bg.layers}');
+    world.add(BackgroundSystem(
+      theme: bg.theme,
+      layerIndices: bg.layers,
+    ));
   }
 
   /// "Play Again" entry point. Restores starting state without remounting the
